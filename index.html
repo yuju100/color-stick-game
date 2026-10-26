@@ -21,10 +21,16 @@ select{width:100%;padding:8px;border:1px solid #ccc;border-radius:9px;margin-top
 .colors{display:flex;gap:9px;flex-wrap:wrap}
 .colorChoice{width:36px;height:36px;padding:0;border:3px solid white;outline:1px solid #bbb;border-radius:9px}
 .colorChoice.chosen{outline:3px solid #51417f}
-.status{font-weight:700;line-height:1.5;white-space:pre-line}
+
+/* 안내창 높이를 고정해 게임판이 위아래로 움직이지 않도록 함 */
+.status-panel{height:120px;display:flex;flex-direction:column;overflow:hidden}
+.status{font-weight:700;line-height:1.45;white-space:pre-line;min-height:44px;max-height:58px;overflow:auto}
 .counter,.small{font-size:12px;color:#716a78}
-.actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.counter{height:18px;flex-shrink:0}
+.actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;flex-shrink:0}
 .hidden{display:none!important}
+
+/* 막대 칸은 항상 10열 */
 .sticks{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;align-items:start}
 .stick{width:100%;min-width:0;height:62px;padding:0;position:relative;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002}
 .stick.back{color:#fff;background:repeating-linear-gradient(45deg,#51417f,#51417f 5px,#655393 5px,#655393 10px);border:1px solid #a99acb}
@@ -32,24 +38,35 @@ select{width:100%;padding:8px;border:1px solid #ccc;border-radius:9px;margin-top
 .stick.selected{outline:3px solid #e0a62c;outline-offset:1px}
 .stick .pattern{position:absolute;inset:6px;border:1px solid #ffffff70;border-radius:4px;pointer-events:none}
 .empty-slot{width:100%;height:62px;visibility:hidden;pointer-events:none}
+
+/* 패널 높이를 고정: 막대가 사라져도 칸 영역이 줄어들지 않음 */
+.board-panel{overflow:hidden}
+#backs{min-height:326px}
+#fronts{min-height:62px}
+#discarded{min-height:62px}
+
 @keyframes flipIn{
  0%{transform:perspective(450px) rotateY(90deg) scale(.8);opacity:.15}
  55%{transform:perspective(450px) rotateY(-12deg) scale(1.06);opacity:1}
  100%{transform:perspective(450px) rotateY(0) scale(1);opacity:1}
 }
 @keyframes landIn{
- 0%{transform:translateY(-22px) scale(.75);opacity:.2}
- 70%{transform:translateY(3px) scale(1.05);opacity:1}
+ 0%{transform:translateY(-18px) scale(.8);opacity:.2}
+ 70%{transform:translateY(2px) scale(1.04);opacity:1}
  100%{transform:translateY(0) scale(1);opacity:1}
 }
-.flip-in{animation:flipIn .42s cubic-bezier(.2,.8,.3,1) both}
-.land-in{animation:landIn .34s ease-out both}
+.flip-in{animation:flipIn .38s ease-out both}
+.land-in{animation:landIn .28s ease-out both}
+
 @media(max-width:420px){
  body{padding:8px}
  .panel{padding:9px}
  .sticks{gap:3px}
  .stick,.empty-slot{height:54px}
+ #backs{min-height:285px}
+ #fronts,#discarded{min-height:54px}
  .settings{gap:8px}
+ .status-panel{height:124px}
 }
 @media(prefers-reduced-motion:reduce){
  .flip-in,.land-in{animation:none!important}
@@ -81,17 +98,19 @@ select{width:100%;padding:8px;border:1px solid #ccc;border-radius:9px;margin-top
 </section>
 
 <section id="game" class="hidden">
- <div class="panel">
-  <div class="status" id="status"></div>
+ <div class="panel status-panel">
+  <div class="status" id="status" aria-live="polite"></div>
   <div class="counter" id="stats"></div>
   <div class="actionrow">
    <button class="secondary" id="cancelPair">짝 선택 취소</button>
    <button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
   </div>
  </div>
- <div class="panel"><div class="sticks" id="backs"></div></div>
- <div class="panel"><div class="sticks" id="fronts"></div></div>
- <div class="panel"><div class="sticks" id="discarded"></div></div>
+
+ <div class="panel board-panel"><div class="sticks" id="backs"></div></div>
+ <div class="panel board-panel"><div class="sticks" id="fronts"></div></div>
+ <div class="panel board-panel"><div class="sticks" id="discarded"></div></div>
+
  <div class="panel hidden" id="finished">
   <h2>🎉 게임 종료!</h2>
   <p id="finalScore" class="status"></p>
@@ -114,7 +133,7 @@ const COLORS=[
 const $=id=>document.getElementById(id);
 
 let luckyColor="빨강";
-let deck=[],fronts=[],discarded=[],selectedPair=[];
+let deck=[],fronts=[],discarded=[],selectedPair=[],frontSlots=[];
 let totalFlipped=0,pending=0,initialRemaining=0;
 let phase="setup",ended=false,soundOn=true,audioCtx=null;
 let lastFlippedId=null,recentMovedIds=new Set(),notice="";
@@ -136,6 +155,7 @@ function makeColorChoices(){
  });
 }
 
+/* 소리: 나무를 가볍게 두드리는 짧은 소리 + 맑은 보너스 종소리 */
 function initAudio(){
  try{
   const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -146,33 +166,62 @@ function initAudio(){
  }catch(e){return null}
 }
 
+function woodenTap(ctx,time,frequency,duration,volume){
+ const osc=ctx.createOscillator();
+ const gain=ctx.createGain();
+ osc.type="triangle";
+ osc.frequency.setValueAtTime(frequency,time);
+ osc.frequency.exponentialRampToValueAtTime(Math.max(100,frequency*.55),time+duration);
+ gain.gain.setValueAtTime(.0001,time);
+ gain.gain.exponentialRampToValueAtTime(volume,time+.004);
+ gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
+ osc.connect(gain);
+ gain.connect(ctx.destination);
+ osc.start(time);
+ osc.stop(time+duration+.015);
+}
+
+function bell(ctx,time,frequency,duration,volume){
+ const osc=ctx.createOscillator();
+ const gain=ctx.createGain();
+ osc.type="sine";
+ osc.frequency.setValueAtTime(frequency,time);
+ gain.gain.setValueAtTime(.0001,time);
+ gain.gain.exponentialRampToValueAtTime(volume,time+.012);
+ gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
+ osc.connect(gain);
+ gain.connect(ctx.destination);
+ osc.start(time);
+ osc.stop(time+duration+.02);
+}
+
 function sound(type){
  if(!soundOn)return;
  const ctx=initAudio();
  if(!ctx)return;
- const patterns={
-  flip:[{f:680,d:.07},{f:950,d:.09}],
-  move:[{f:480,d:.07},{f:720,d:.10}],
-  lucky:[{f:660,d:.08},{f:880,d:.09},{f:1180,d:.15}],
-  pair:[{f:600,d:.06},{f:780,d:.09}],
-  end:[{f:660,d:.10},{f:880,d:.12},{f:1046,d:.2}]
- };
- const notes=patterns[type]||patterns.flip;
- const start=ctx.currentTime;
- notes.forEach((note,i)=>{
-  const t=start+i*.075;
-  const osc=ctx.createOscillator();
-  const gain=ctx.createGain();
-  osc.type=type==="move"?"triangle":"sine";
-  osc.frequency.setValueAtTime(note.f,t);
-  gain.gain.setValueAtTime(.0001,t);
-  gain.gain.exponentialRampToValueAtTime(.13,t+.012);
-  gain.gain.exponentialRampToValueAtTime(.0001,t+note.d);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(t);
-  osc.stop(t+note.d+.02);
- });
+ const t=ctx.currentTime+.005;
+
+ if(type==="flip"){
+  // 가볍고 짧은 나무 막대 뒤집는 소리: 딱!
+  woodenTap(ctx,t,920,.045,.16);
+  woodenTap(ctx,t+.025,660,.055,.055);
+ }else if(type==="move"){
+  // 내려놓는 묵직한 탁!
+  woodenTap(ctx,t,390,.075,.19);
+  woodenTap(ctx,t+.018,250,.065,.07);
+ }else if(type==="lucky"){
+  // 반짝, 띠링!
+  bell(ctx,t,880,.16,.12);
+  bell(ctx,t+.085,1175,.19,.11);
+  bell(ctx,t+.17,1568,.25,.09);
+ }else if(type==="pair"){
+  woodenTap(ctx,t,520,.06,.13);
+  woodenTap(ctx,t+.07,390,.07,.14);
+ }else if(type==="end"){
+  bell(ctx,t,784,.16,.08);
+  bell(ctx,t+.12,988,.18,.08);
+  bell(ctx,t+.25,1175,.25,.09);
+ }
 }
 
 function shuffle(a){
@@ -198,6 +247,12 @@ function addPack(){
 
 function getBacks(){return deck.filter(s=>s.state==="back")}
 
+function putInFrontSlot(s){
+ const emptyIndex=frontSlots.indexOf(null);
+ if(emptyIndex>=0)frontSlots[emptyIndex]=s.id;
+ else frontSlots.push(s.id);
+}
+
 function flipOne(kind){
  if(getBacks().length===0)addPack();
  const s=getBacks()[0];
@@ -206,6 +261,7 @@ function flipOne(kind){
  s.order=++totalFlipped;
  s.kind=kind;
  fronts.push(s);
+ putInFrontSlot(s);
  lastFlippedId=s.id;
  if(kind==="initial")initialRemaining--;
  if(kind==="bonus")pending=Math.max(0,pending-1);
@@ -214,7 +270,7 @@ function flipOne(kind){
 
 function startGame(){
  initAudio();
- deck=[];fronts=[];discarded=[];selectedPair=[];
+ deck=[];fronts=[];discarded=[];selectedPair=[];frontSlots=[];
  totalFlipped=0;pending=0;
  initialRemaining=Number($("initialCount").value);
  lastFlippedId=null;recentMovedIds.clear();
@@ -273,6 +329,8 @@ function moveToDiscard(sticks,type){
   s.state=type;
   recentMovedIds.add(s.id);
   discarded.push(s);
+  const slotIndex=frontSlots.indexOf(s.id);
+  if(slotIndex>=0)frontSlots[slotIndex]=null;
  });
  const ids=new Set(moving.map(s=>s.id));
  fronts=fronts.filter(s=>!ids.has(s.id));
@@ -286,7 +344,6 @@ function tapFront(id){
  const s=fronts.find(x=>x.id===id&&x.state==="front");
  if(!s)return;
 
- // 럭컬을 누를 때마다 내려놓고 보너스 2개 추가
  if(s.color===luckyColor){
   selectedPair=[];
   moveToDiscard([s],"luckySelected");
@@ -298,7 +355,6 @@ function tapFront(id){
   return;
  }
 
- // 선택된 막대를 다시 누르면 취소
  if(selectedPair.includes(id)){
   selectedPair=[];
   notice="짝 선택을 취소했어.";
@@ -306,7 +362,6 @@ function tapFront(id){
   return;
  }
 
- // 첫 막대 선택
  if(selectedPair.length===0){
   selectedPair=[id];
   notice="같은 색 막대 하나를 더 눌러 짝을 만들어 줘.";
@@ -322,7 +377,6 @@ function tapFront(id){
   return;
  }
 
- // 두 번째 같은 색 막대를 누르면 즉시 처리
  selectedPair=[];
  moveToDiscard([first,s],"paired");
  pending++;
@@ -382,7 +436,8 @@ function makeStick(s,isBack,area){
   return b;
  }
 
- b.style.background=COLORS.find(c=>c.name===s.color).value;
+ const color=COLORS.find(c=>c.name===s.color);
+ b.style.background=color?color.value:"#888";
  b.innerHTML='<span class="pattern"></span>';
  b.setAttribute("aria-label","색깔 막대");
  if(area==="front"&&s.state==="front")b.onclick=()=>tapFront(s.id);
@@ -392,26 +447,33 @@ function makeStick(s,isBack,area){
  return b;
 }
 
+function makeEmptySlot(){
+ const empty=document.createElement("div");
+ empty.className="empty-slot";
+ empty.setAttribute("aria-hidden","true");
+ return empty;
+}
+
 function render(){
+ // 뒷면: 뒤집힌 자리도 빈칸으로 남겨 전체 그리드가 줄어들지 않게 함
  $("backs").innerHTML="";
- getBacks().forEach(s=>$("backs").appendChild(makeStick(s,true,"back")));
-
- // 뒤집힌 막대의 원래 순서를 유지한다.
- // 내려놓은 막대는 제거하지 않고 같은 자리에 빈칸을 만든다.
- $("fronts").innerHTML="";
- const allFrontSlots=deck
-  .filter(s=>s.order>0)
-  .sort((a,b)=>a.order-b.order);
-
- allFrontSlots.forEach(s=>{
-  if(s.state==="front"){
-   $("fronts").appendChild(makeStick(s,false,"front"));
+ deck.forEach(s=>{
+  if(s.state==="back"){
+   $("backs").appendChild(makeStick(s,true,"back"));
   }else{
-   const empty=document.createElement("div");
-   empty.className="empty-slot";
-   empty.setAttribute("aria-hidden","true");
-   $("fronts").appendChild(empty);
+   $("backs").appendChild(makeEmptySlot());
   }
+ });
+
+ // 앞면: 독립적인 자리 배열을 사용해 빈칸 위치를 보존
+ $("fronts").innerHTML="";
+ frontSlots.forEach(id=>{
+  if(id===null){
+   $("fronts").appendChild(makeEmptySlot());
+   return;
+  }
+  const s=fronts.find(x=>x.id===id&&x.state==="front");
+  $("fronts").appendChild(s?makeStick(s,false,"front"):makeEmptySlot());
  });
 
  $("discarded").innerHTML="";
