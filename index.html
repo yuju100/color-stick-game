@@ -10,7 +10,7 @@
 body{margin:0;padding:12px;background:#f5f1e8;color:#302b35;font-family:system-ui,sans-serif}
 h1{text-align:center;font-size:25px;margin:8px 0 16px}
 h2{font-size:17px;margin:0 0 12px}
-.panel{background:white;border-radius:16px;padding:12px;margin:12px 0;box-shadow:0 3px 9px #0000000c}
+.panel{background:#fff;border-radius:16px;padding:12px;margin:12px 0;box-shadow:0 3px 9px #0000000c}
 button,select{font:inherit}
 button{border:0;border-radius:11px;padding:10px 12px;background:#51417f;color:white;font-weight:700;cursor:pointer;touch-action:manipulation}
 button:disabled{opacity:.4}
@@ -21,353 +21,427 @@ select{width:100%;padding:8px;border:1px solid #ccc;border-radius:9px;margin-top
 .colors{display:flex;gap:9px;flex-wrap:wrap}
 .colorChoice{width:36px;height:36px;padding:0;border:3px solid white;outline:1px solid #bbb;border-radius:9px}
 .colorChoice.chosen{outline:3px solid #51417f}
-.status{font-weight:700;line-height:1.5}
+.status{font-weight:700;line-height:1.5;white-space:pre-line}
 .counter,.small{font-size:12px;color:#716a78}
 .actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .hidden{display:none!important}
 .sticks{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;align-items:start}
-.stick{width:100%;min-width:0;height:62px;padding:0;position:relative;display:flex;align-items:center;justify-content:center;border-radius:6px;overflow:hidden;box-shadow:inset 0 2px 0 #ffffff66,0 3px 3px #0002}
+.stick{width:100%;min-width:0;height:62px;padding:0;position:relative;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002}
 .stick.back{color:#fff;background:repeating-linear-gradient(45deg,#51417f,#51417f 5px,#655393 5px,#655393 10px);border:1px solid #a99acb}
-.stick.front{border:1px solid #ffffff99;color:white;text-shadow:0 1px 2px #0005}
-.stick.lucky{box-shadow:inset 0 0 0 3px #ffe16a,0 3px 3px #0002}
+.stick.front{border:1px solid #ffffff55}
 .stick.selected{outline:3px solid #e0a62c;outline-offset:1px}
-.stick.paired{opacity:.8;box-shadow:inset 0 0 0 3px #ffffffa0}
-.stick .symbol{font-size:12px;overflow-wrap:anywhere}
-.stick .num{position:absolute;bottom:2px;right:2px;font-size:9px;background:#0004;border-radius:3px;padding:1px 2px}
-.stick .mark{position:absolute;top:1px;left:2px;font-size:12px}
-@keyframes flipIn{0%{transform:perspective(400px) rotateY(90deg) scale(.85);opacity:.2}55%{transform:perspective(400px) rotateY(-10deg) scale(1.05);opacity:1}100%{transform:perspective(400px) rotateY(0) scale(1);opacity:1}}
-@keyframes slideIn{0%{transform:translateY(-15px) scale(.8);opacity:.2}70%{transform:translateY(3px) scale(1.04);opacity:1}100%{transform:translateY(0) scale(1);opacity:1}}
-.flip-in{animation:flipIn .36s ease-out both}
-.slide-in{animation:slideIn .32s ease-out both}
-@media(max-width:420px){body{padding:8px}.panel{padding:9px}.sticks{gap:3px}.stick{height:54px}.stick .symbol{font-size:10px}.settings{gap:8px}}
-@media(prefers-reduced-motion:reduce){.flip-in,.slide-in{animation:none!important}}
+.stick .pattern{position:absolute;inset:6px;border:1px solid #ffffff70;border-radius:4px;pointer-events:none}
+.empty-slot{width:100%;height:62px;visibility:hidden;pointer-events:none}
+@keyframes flipIn{
+ 0%{transform:perspective(450px) rotateY(90deg) scale(.8);opacity:.15}
+ 55%{transform:perspective(450px) rotateY(-12deg) scale(1.06);opacity:1}
+ 100%{transform:perspective(450px) rotateY(0) scale(1);opacity:1}
+}
+@keyframes landIn{
+ 0%{transform:translateY(-22px) scale(.75);opacity:.2}
+ 70%{transform:translateY(3px) scale(1.05);opacity:1}
+ 100%{transform:translateY(0) scale(1);opacity:1}
+}
+.flip-in{animation:flipIn .42s cubic-bezier(.2,.8,.3,1) both}
+.land-in{animation:landIn .34s ease-out both}
+@media(max-width:420px){
+ body{padding:8px}
+ .panel{padding:9px}
+ .sticks{gap:3px}
+ .stick,.empty-slot{height:54px}
+ .settings{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .flip-in,.land-in{animation:none!important}
+}
 </style>
 </head>
 <body>
 <h1>🌈 컬러 막대 게임</h1>
 
 <section class="panel" id="setup">
-<h2>게임 설정</h2>
-<p class="small">럭컬 색깔을 골라 줘.</p>
-<div class="colors" id="colorChoices"></div>
-<div class="settings" style="margin-top:14px">
-<label>처음 뒤집을 개수
-<select id="initialCount">
-<option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option>
-</select></label>
-<label>처음 뒤집기
-<select id="initialMode"><option value="manual">직접 누르기</option><option value="auto">자동 뒤집기</option></select></label>
-<label>보너스 뒤집기
-<select id="bonusMode"><option value="auto">자동 뒤집기</option><option value="manual">직접 누르기</option></select></label>
-<label>럭컬 처리
-<select id="luckyMode"><option value="manual">직접 누르기</option><option value="auto">자동 처리</option></select></label>
-<label>짝컬 처리
-<select id="pairMode"><option value="manual">직접 누르기</option><option value="auto">자동 처리</option></select></label>
-</div>
-<div class="actionrow"><button id="startBtn">게임 시작!</button></div>
+ <h2>게임 설정</h2>
+ <p class="small">럭컬 색깔을 골라 줘.</p>
+ <div class="colors" id="colorChoices"></div>
+ <div class="settings" style="margin-top:14px">
+  <label>처음 뒤집을 개수
+   <select id="initialCount">
+    <option>5</option><option>6</option><option>7</option>
+    <option>8</option><option>9</option><option>10</option><option>11</option>
+   </select>
+  </label>
+  <label>처음 뒤집기
+   <select id="initialMode">
+    <option value="manual">직접 누르기</option>
+    <option value="auto">자동 뒤집기</option>
+   </select>
+  </label>
+ </div>
+ <div class="actionrow"><button id="startBtn">게임 시작!</button></div>
 </section>
 
 <section id="game" class="hidden">
-<div class="panel">
-<div class="status" id="status"></div>
-<div class="counter" id="stats"></div>
-<div class="actionrow">
-<button class="secondary" id="cancelPair">선택 취소</button>
-<button id="confirmPairs">선택한 짝컬 처리 (0쌍)</button>
-<button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
-</div>
-</div>
-<div class="panel"><div class="sticks" id="backs"></div></div>
-<div class="panel"><div class="sticks" id="fronts"></div></div>
-<div class="panel"><div class="sticks" id="discarded"></div></div>
-<div class="panel hidden" id="finished">
-<h2>🎉 게임 종료!</h2>
-<p id="finalScore" class="status"></p>
-<button id="restart">다시 하기</button>
-</div>
+ <div class="panel">
+  <div class="status" id="status"></div>
+  <div class="counter" id="stats"></div>
+  <div class="actionrow">
+   <button class="secondary" id="cancelPair">짝 선택 취소</button>
+   <button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
+  </div>
+ </div>
+ <div class="panel"><div class="sticks" id="backs"></div></div>
+ <div class="panel"><div class="sticks" id="fronts"></div></div>
+ <div class="panel"><div class="sticks" id="discarded"></div></div>
+ <div class="panel hidden" id="finished">
+  <h2>🎉 게임 종료!</h2>
+  <p id="finalScore" class="status"></p>
+  <button id="restart">다시 하기</button>
+ </div>
 </section>
 
 <script>
+"use strict";
+
 const COLORS=[
-{name:"빨강",value:"#e34e4e"},
-{name:"노랑",value:"#e2b62e"},
-{name:"분홍",value:"#e779ad"},
-{name:"보라",value:"#865bd1"},
-{name:"검정",value:"#393740"},
-{name:"파랑",value:"#4389d8"},
-{name:"회색",value:"#858b95"}
+ {name:"빨강",value:"#e34e4e"},
+ {name:"노랑",value:"#e2b62e"},
+ {name:"분홍",value:"#e779ad"},
+ {name:"보라",value:"#865bd1"},
+ {name:"검정",value:"#393740"},
+ {name:"파랑",value:"#4389d8"},
+ {name:"회색",value:"#858b95"}
 ];
 const $=id=>document.getElementById(id);
-let luckyColor="빨강",deck=[],fronts=[],discarded=[],selectedPair=[];
-let totalFlipped=0,pending=0,initialRemaining=0,bonusRemaining=0;
-let phase="setup",ended=false,processing=false,notice="",soundOn=true,audioCtx=null;
 
-function sound(type){
- if(!soundOn)return;
- try{
-  const Ctx=window.AudioContext||window.webkitAudioContext;
-  if(!Ctx)return;
-  if(!audioCtx)audioCtx=new Ctx();
-  if(audioCtx.state==="suspended")audioCtx.resume();
-  const now=audioCtx.currentTime;
-  const notes={
-   flip:[[720,.055],[980,.045]],
-   move:[[440,.055],[660,.075]],
-   lucky:[[660,.08],[880,.09],[1175,.16]],
-   pair:[[520,.06],[390,.08]],
-   end:[[660,.1],[880,.1],[1046,.22]]
-  }[type]||[[600,.06]];
-  notes.forEach((n,i)=>{
-   const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
-   osc.type="sine";
-   osc.frequency.setValueAtTime(n[0],now+i*.075);
-   gain.gain.setValueAtTime(.0001,now+i*.075);
-   gain.gain.exponentialRampToValueAtTime(.12,now+i*.075+.012);
-   gain.gain.exponentialRampToValueAtTime(.0001,now+i*.075+n[1]);
-   osc.connect(gain);gain.connect(audioCtx.destination);
-   osc.start(now+i*.075);osc.stop(now+i*.075+n[1]+.02);
-  });
- }catch(e){}
-}
+let luckyColor="빨강";
+let deck=[],fronts=[],discarded=[],selectedPair=[];
+let totalFlipped=0,pending=0,initialRemaining=0;
+let phase="setup",ended=false,soundOn=true,audioCtx=null;
+let lastFlippedId=null,recentMovedIds=new Set(),notice="";
+
 function makeColorChoices(){
  $("colorChoices").innerHTML="";
  COLORS.forEach(c=>{
   const b=document.createElement("button");
   b.className="colorChoice"+(c.name===luckyColor?" chosen":"");
-  b.style.background=c.value;b.title=c.name;b.setAttribute("aria-label",c.name);
-  b.onclick=()=>{if(phase==="setup"){luckyColor=c.name;makeColorChoices()}};
+  b.style.background=c.value;
+  b.title=c.name;
+  b.setAttribute("aria-label",c.name);
+  b.onclick=()=>{
+   if(phase!=="setup")return;
+   luckyColor=c.name;
+   makeColorChoices();
+  };
   $("colorChoices").appendChild(b);
  });
 }
+
+function initAudio(){
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  if(!Ctx)return null;
+  if(!audioCtx)audioCtx=new Ctx();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  return audioCtx;
+ }catch(e){return null}
+}
+
+function sound(type){
+ if(!soundOn)return;
+ const ctx=initAudio();
+ if(!ctx)return;
+ const patterns={
+  flip:[{f:680,d:.07},{f:950,d:.09}],
+  move:[{f:480,d:.07},{f:720,d:.10}],
+  lucky:[{f:660,d:.08},{f:880,d:.09},{f:1180,d:.15}],
+  pair:[{f:600,d:.06},{f:780,d:.09}],
+  end:[{f:660,d:.10},{f:880,d:.12},{f:1046,d:.2}]
+ };
+ const notes=patterns[type]||patterns.flip;
+ const start=ctx.currentTime;
+ notes.forEach((note,i)=>{
+  const t=start+i*.075;
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.type=type==="move"?"triangle":"sine";
+  osc.frequency.setValueAtTime(note.f,t);
+  gain.gain.setValueAtTime(.0001,t);
+  gain.gain.exponentialRampToValueAtTime(.13,t+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001,t+note.d);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t+note.d+.02);
+ });
+}
+
 function shuffle(a){
- for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+ for(let i=a.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [a[i],a[j]]=[a[j],a[i]];
+ }
  return a;
 }
+
 function addPack(){
  const pack=[];
  COLORS.forEach(c=>{for(let i=0;i<7;i++)pack.push(c.name)});
  pack.push(COLORS[Math.floor(Math.random()*COLORS.length)].name);
  shuffle(pack);
- pack.forEach(color=>deck.push({id:Math.random().toString(36).slice(2),color,state:"back",order:0}));
+ pack.forEach(color=>{
+  deck.push({
+   id:Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random(),
+   color,state:"back",order:0
+  });
+ });
 }
-function backCount(){return deck.filter(s=>s.state==="back").length}
+
+function getBacks(){return deck.filter(s=>s.state==="back")}
+
 function flipOne(kind){
- if(backCount()===0)addPack();
- const s=deck.find(x=>x.state==="back");
+ if(getBacks().length===0)addPack();
+ const s=getBacks()[0];
  if(!s)return;
- s.state="front";s.order=++totalFlipped;s.kind=kind;
+ s.state="front";
+ s.order=++totalFlipped;
+ s.kind=kind;
  fronts.push(s);
+ lastFlippedId=s.id;
  if(kind==="initial")initialRemaining--;
- if(kind==="bonus"){bonusRemaining--;pending=Math.max(0,pending-1)}
+ if(kind==="bonus")pending=Math.max(0,pending-1);
  sound("flip");
 }
+
 function startGame(){
+ initAudio();
  deck=[];fronts=[];discarded=[];selectedPair=[];
- totalFlipped=0;pending=0;initialRemaining=Number($("initialCount").value);
- bonusRemaining=0;phase="initial";processing=false;ended=false;notice="";
+ totalFlipped=0;pending=0;
+ initialRemaining=Number($("initialCount").value);
+ lastFlippedId=null;recentMovedIds.clear();
+ ended=false;phase="initial";notice="";
  addPack();
- $("setup").classList.add("hidden");$("game").classList.remove("hidden");$("finished").classList.add("hidden");
+ $("setup").classList.add("hidden");
+ $("game").classList.remove("hidden");
+ $("finished").classList.add("hidden");
+
  if($("initialMode").value==="auto"){
   while(initialRemaining>0)flipOne("initial");
-  phase="play";notice="럭컬이나 짝컬을 처리해 줘.";render();processEffects();
- }else{notice=`원하는 막대를 ${initialRemaining}개 눌러 뒤집어 줘!`;render()}
+  phase="play";
+  notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
+ }else{
+  notice=`처음 막대를 ${initialRemaining}개 직접 눌러 뒤집어 줘!`;
+ }
+ render();
 }
+
 function tapBack(id){
- if(ended||processing)return;
- const s=deck.find(x=>x.id===id);
- if(!s||s.state!=="back")return;
+ if(ended)return;
+ initAudio();
+ const s=deck.find(x=>x.id===id&&x.state==="back");
+ if(!s)return;
+
  if(phase==="initial"){
   flipOne("initial");
-  notice=initialRemaining>0?`막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`:"초기 막대 뒤집기 완료!";
-  if(initialRemaining<=0)phase="play";
- }else if(phase==="bonus"){
-  flipOne("bonus");
-  notice=bonusRemaining>0?`보너스 막대를 더 뒤집어 줘! (${bonusRemaining}개 남음)`:"보너스 막대를 모두 뒤집었어!";
-  if(bonusRemaining<=0)phase="play";
- }else return;
- render();
- if(phase==="play")processEffects();
-}
-function moveToDiscard(sticks,type){
- sticks.forEach(s=>{
-  s.state=type==="lucky"?"luckySelected":"paired";
-  discarded.push(s);fronts=fronts.filter(x=>x.id!==s.id);
- });
- selectedPair=[];
-}
-function tapFront(id){
- if(ended||processing||phase!=="play")return;
- const s=fronts.find(x=>x.id===id);
- if(!s||s.state!=="front")return;
-
- // 럭컬은 누르면 즉시 내려놓고 보너스 2개
- if(s.color===luckyColor){
-  moveToDiscard([s],"lucky");
-  pending+=2;notice="럭컬! 보너스 막대 2개를 뒤집어 줘.";
-  sound("lucky");render();processEffects();return;
- }
-
- // 선택한 막대를 다시 누르면 선택 취소
- if(selectedPair.includes(id)){
-  selectedPair=selectedPair.filter(x=>x!==id);
-  notice="선택을 취소했어.";render();return;
- }
-
- // 색깔별 선택은 최대 두 개. 여러 색의 짝을 동시에 선택할 수 있음.
- const colorCount=fronts.filter(x=>selectedPair.includes(x.id)&&x.color===s.color).length;
- if(colorCount>=2){
-  notice="이 색의 짝은 이미 선택했어.";render();return;
- }
- selectedPair.push(id);
- notice=`선택한 짝: ${getSelectedPairCount()}쌍`;
- render();
-}
-function getSelectedPairCount(){
- const counts={};
- selectedPair.forEach(id=>{
-  const s=fronts.find(x=>x.id===id);
-  if(s)counts[s.color]=(counts[s.color]||0)+1;
- });
- return Object.values(counts).reduce((n,c)=>n+Math.floor(c/2),0);
-}
-function confirmPairs(){
- if(ended||processing||phase!=="play")return;
- const counts={};
- selectedPair.forEach(id=>{
-  const s=fronts.find(x=>x.id===id);
-  if(s)counts[s.color]=(counts[s.color]||0)+1;
- });
- const completeColors=Object.keys(counts).filter(c=>counts[c]>=2&&c!==luckyColor);
- const chosen=[];
- completeColors.forEach(c=>{
-  const ids=selectedPair.filter(id=>fronts.some(s=>s.id===id&&s.color===c));
-  ids.slice(0,2).forEach(id=>chosen.push(id));
- });
- // Defensive check: process every complete selected pair, including 2+ pairs of a color.
- const byColor={};
- selectedPair.forEach(id=>{
-  const s=fronts.find(x=>x.id===id);
-  if(s&&s.color!==luckyColor)(byColor[s.color]??=[]).push(s);
- });
- const toMove=[];
- Object.values(byColor).forEach(arr=>{
-  for(let i=0;i+1<arr.length;i+=2)toMove.push(arr[i],arr[i+1]);
- });
- if(!toMove.length){
-  notice="같은 색 막대 두 개 이상을 선택해 줘.";
-  render();return;
- }
- moveToDiscard(toMove,"pair");
- pending+=toMove.length/2;
- notice=`짝컬 ${toMove.length/2}쌍 처리! 보너스 ${toMove.length/2}개를 받아.`;
- sound("pair");render();processEffects();
-}
-function processEffects(){
- if(ended||processing||phase==="initial"||phase==="bonus")return;
- processing=true;
-
- // 자동 럭컬 처리는 보너스 처리가 끝난 뒤 실행
- if(pending===0&&$("luckyMode").value==="auto"){
-  const luckies=fronts.filter(s=>s.color===luckyColor&&s.state==="front");
-  if(luckies.length){moveToDiscard(luckies,"lucky");pending+=2*luckies.length;sound("lucky")}
- }
- if($("pairMode").value==="auto"){
-  let changed=true;
-  while(changed){
-   changed=false;
-   for(const c of COLORS.map(x=>x.name).filter(x=>x!==luckyColor)){
-    const same=fronts.filter(s=>s.color===c&&s.state==="front");
-    if(same.length>=2){
-     moveToDiscard(same.slice(0,2),"pair");pending++;changed=true;sound("pair");break;
-    }
-   }
-  }
- }
- processing=false;
-
- if(pending>0){
-  bonusRemaining=pending;
-  if($("bonusMode").value==="auto"){
-   phase="bonus";
-   while(bonusRemaining>0)flipOne("bonus");
-   phase="play";notice="보너스 막대를 모두 뒤집었어!";
-   render();processEffects();return;
+  if(initialRemaining<=0){
+   phase="play";
+   notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
   }else{
-   phase="bonus";notice=`보너스 막대를 직접 뒤집어 줘! (${bonusRemaining}개 남음)`;
-   render();return;
+   notice=`처음 막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`;
   }
+  render();
+  return;
  }
- const hasLucky=$("luckyMode").value==="manual"&&fronts.some(s=>s.color===luckyColor&&s.state==="front");
- const hasPair=$("pairMode").value==="manual"&&COLORS.some(c=>c.name!==luckyColor&&fronts.filter(s=>s.color===c.name&&s.state==="front").length>=2);
- if(hasLucky||hasPair){
-  notice=(hasLucky?"럭컬 막대를 눌러 내려놓아 줘. ":"")+
-         (hasPair?"짝컬은 같은 색 두 개를 선택한 뒤 처리 버튼을 눌러 줘.":"");
-  render();return;
+
+ if(phase==="play"&&pending>0){
+  flipOne("bonus");
+  notice=pending>0
+   ?`보너스 막대 ${pending}개 남음. 더 뒤집거나 보이는 효과를 처리해 줘!`
+   :"보너스를 모두 뒤집었어! 새로 나온 럭컬과 짝컬을 확인해 줘.";
+  render();
+  checkEnd();
+  return;
  }
- notice="모든 효과 처리 완료! 게임을 종료할게.";
- render();endGame();
+
+ notice="먼저 보이는 럭컬이나 같은 색 짝을 처리해 줘!";
+ render();
 }
+
+function moveToDiscard(sticks,type){
+ const moving=sticks.filter(s=>fronts.some(f=>f.id===s.id));
+ if(!moving.length)return;
+ moving.forEach(s=>{
+  s.state=type;
+  recentMovedIds.add(s.id);
+  discarded.push(s);
+ });
+ const ids=new Set(moving.map(s=>s.id));
+ fronts=fronts.filter(s=>!ids.has(s.id));
+ selectedPair=selectedPair.filter(id=>!ids.has(id));
+ sound("move");
+}
+
+function tapFront(id){
+ if(ended||phase!=="play")return;
+ initAudio();
+ const s=fronts.find(x=>x.id===id&&x.state==="front");
+ if(!s)return;
+
+ // 럭컬을 누를 때마다 내려놓고 보너스 2개 추가
+ if(s.color===luckyColor){
+  selectedPair=[];
+  moveToDiscard([s],"luckySelected");
+  pending+=2;
+  notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
+  sound("lucky");
+  render();
+  checkEnd();
+  return;
+ }
+
+ // 선택된 막대를 다시 누르면 취소
+ if(selectedPair.includes(id)){
+  selectedPair=[];
+  notice="짝 선택을 취소했어.";
+  render();
+  return;
+ }
+
+ // 첫 막대 선택
+ if(selectedPair.length===0){
+  selectedPair=[id];
+  notice="같은 색 막대 하나를 더 눌러 짝을 만들어 줘.";
+  render();
+  return;
+ }
+
+ const first=fronts.find(x=>x.id===selectedPair[0]);
+ if(!first||first.color!==s.color){
+  selectedPair=[id];
+  notice="같은 색 막대 하나를 더 눌러 줘.";
+  render();
+  return;
+ }
+
+ // 두 번째 같은 색 막대를 누르면 즉시 처리
+ selectedPair=[];
+ moveToDiscard([first,s],"paired");
+ pending++;
+ notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
+ sound("pair");
+ render();
+ checkEnd();
+}
+
+function cancelPair(){
+ if(!selectedPair.length)return;
+ selectedPair=[];
+ notice="짝 선택을 취소했어.";
+ render();
+}
+
+function hasManualEffects(){
+ if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
+ const counts={};
+ fronts.forEach(s=>{
+  if(s.state==="front"&&s.color!==luckyColor)
+   counts[s.color]=(counts[s.color]||0)+1;
+ });
+ return Object.values(counts).some(n=>n>=2);
+}
+
+function checkEnd(){
+ if(ended||phase!=="play")return;
+ if(pending>0)return;
+ if(hasManualEffects())return;
+ if(selectedPair.length>0)return;
+ endGame();
+}
+
 function endGame(){
  if(ended)return;
- if(fronts.length){
-  fronts.forEach(s=>{s.state="final";discarded.push(s)});
-  fronts=[];sound("move");
- }
- ended=true;phase="ended";selectedPair=[];
+ if(fronts.length)moveToDiscard([...fronts],"final");
+ ended=true;
+ phase="ended";
+ selectedPair=[];
+ notice="모든 효과를 처리했어!";
  $("finished").classList.remove("hidden");
  $("finalScore").textContent=`총 뒤집은 막대: ${totalFlipped}개`;
- sound("end");render();
+ sound("end");
+ render();
 }
-function makeStick(s,back,area){
+
+function makeStick(s,isBack,area){
  const b=document.createElement("button");
- b.className="stick "+(back?"back":"front");
+ b.className="stick "+(isBack?"back":"front");
  if(selectedPair.includes(s.id))b.classList.add("selected");
- if(s.color===luckyColor&&!back)b.classList.add("lucky");
- if(s.state==="paired")b.classList.add("paired");
- if(back){
-  b.innerHTML='<span class="symbol">✦</span>';
+
+ if(isBack){
+  b.innerHTML='<span class="pattern"></span>';
+  b.setAttribute("aria-label","뒤집힌 막대");
   b.onclick=()=>tapBack(s.id);
- }else{
-  b.style.background=COLORS.find(c=>c.name===s.color).value;
-  let mark="";
-  if(s.state==="luckySelected")mark="★";
-  if(s.state==="paired")mark="✓";
-  b.innerHTML=`<span class="mark">${mark}</span><span class="symbol">${s.color}</span><span class="num">${s.order}</span>`;
-  if(area==="front"&&s.state==="front")b.onclick=()=>tapFront(s.id);
-  else b.disabled=true;
+  return b;
  }
+
+ b.style.background=COLORS.find(c=>c.name===s.color).value;
+ b.innerHTML='<span class="pattern"></span>';
+ b.setAttribute("aria-label","색깔 막대");
+ if(area==="front"&&s.state==="front")b.onclick=()=>tapFront(s.id);
+ else b.disabled=true;
+ if(s.id===lastFlippedId)b.classList.add("flip-in");
+ if(recentMovedIds.has(s.id))b.classList.add("land-in");
  return b;
 }
+
 function render(){
  $("backs").innerHTML="";
- deck.filter(s=>s.state==="back").forEach(s=>$("backs").appendChild(makeStick(s,true,"back")));
+ getBacks().forEach(s=>$("backs").appendChild(makeStick(s,true,"back")));
+
+ // 뒤집힌 막대의 원래 순서를 유지한다.
+ // 내려놓은 막대는 제거하지 않고 같은 자리에 빈칸을 만든다.
  $("fronts").innerHTML="";
- fronts.forEach(s=>{
-  const el=makeStick(s,false,"front");
-  if(s.order===totalFlipped)el.classList.add("flip-in");
-  $("fronts").appendChild(el);
+ const allFrontSlots=deck
+  .filter(s=>s.order>0)
+  .sort((a,b)=>a.order-b.order);
+
+ allFrontSlots.forEach(s=>{
+  if(s.state==="front"){
+   $("fronts").appendChild(makeStick(s,false,"front"));
+  }else{
+   const empty=document.createElement("div");
+   empty.className="empty-slot";
+   empty.setAttribute("aria-hidden","true");
+   $("fronts").appendChild(empty);
+  }
  });
+
  $("discarded").innerHTML="";
- discarded.forEach(s=>{
-  const el=makeStick(s,false,"discarded");
-  if(s===discarded[discarded.length-1]||s===discarded[discarded.length-2])el.classList.add("slide-in");
-  $("discarded").appendChild(el);
- });
+ discarded.forEach(s=>$("discarded").appendChild(makeStick(s,false,"discarded")));
+
  $("status").textContent=notice;
- $("stats").textContent=`럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 남은 보너스: ${pending}`;
+ $("stats").textContent=`럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
  $("cancelPair").disabled=selectedPair.length===0;
- $("confirmPairs").textContent=`선택한 짝컬 처리 (${getSelectedPairCount()}쌍)`;
- $("confirmPairs").disabled=getSelectedPairCount()===0||phase!=="play"||ended;
  $("soundToggle").textContent=soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
+
+ requestAnimationFrame(()=>{
+  lastFlippedId=null;
+  recentMovedIds.clear();
+ });
 }
+
 $("startBtn").onclick=startGame;
-$("cancelPair").onclick=()=>{selectedPair=[];notice="선택을 취소했어.";render()};
-$("confirmPairs").onclick=confirmPairs;
-$("soundToggle").onclick=()=>{soundOn=!soundOn;if(soundOn)sound("flip");render()};
+$("cancelPair").onclick=cancelPair;
+$("soundToggle").onclick=()=>{
+ soundOn=!soundOn;
+ if(soundOn)sound("flip");
+ render();
+};
 $("restart").onclick=()=>{
  phase="setup";ended=false;
- $("game").classList.add("hidden");$("setup").classList.remove("hidden");makeColorChoices();
+ $("game").classList.add("hidden");
+ $("setup").classList.remove("hidden");
+ makeColorChoices();
 };
+
 makeColorChoices();
 </script>
 </body>
