@@ -1,0 +1,445 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>컬러 스틱 게임</title>
+<style>
+:root {
+  --bg:#f5f0e8; --ink:#342c2b; --card:#fffdf8;
+  --accent:#6c4cce; --line:#e6dccf;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+}
+header {
+  text-align:center; padding:22px 12px 15px;
+  background:#fffaf2; border-bottom:1px solid var(--line);
+}
+h1 { margin:0; font-size:25px; }
+header p { margin:7px 0 0; font-size:13px; color:#80746b; }
+main { max-width:760px; margin:auto; padding:14px; }
+.panel {
+  background:var(--card); border:1px solid var(--line);
+  border-radius:17px; padding:15px; margin-bottom:13px;
+  box-shadow:0 3px 9px #49351b0a;
+}
+h2 { font-size:17px; margin:0 0 12px; }
+label { display:block; font-size:14px; margin:10px 0 5px; }
+select,button {
+  font:inherit; border-radius:11px; padding:11px 12px;
+}
+select {
+  width:100%; border:1px solid #d9cebf; background:white; color:var(--ink);
+}
+button {
+  border:0; background:var(--accent); color:white;
+  font-weight:700; cursor:pointer; touch-action:manipulation;
+}
+button:disabled { opacity:.38; cursor:default; }
+.secondary { background:#eee7fa; color:#5137a1; }
+.danger { background:#f7e5e2; color:#9d342b; }
+.row { display:flex; gap:8px; flex-wrap:wrap; }
+.row > button { flex:1; min-width:115px; }
+.small { font-size:12px; color:#81766c; line-height:1.5; }
+.stats {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px;
+}
+.stat {
+  background:#f4eee5; border-radius:12px; padding:11px 5px;
+  text-align:center; font-size:12px;
+}
+.stat strong { display:block; font-size:22px; margin-bottom:3px; }
+#message {
+  background:#f0eafd; color:#5137a1; border-radius:12px;
+  padding:12px; font-size:14px; line-height:1.55;
+}
+#colors { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.colorChoice {
+  flex:1; min-width:65px; padding:9px 5px; border-radius:12px;
+  border:2px solid transparent; color:white; font-size:13px;
+  text-shadow:0 1px 2px #0005;
+}
+.colorChoice.selected { border-color:#29212c; outline:2px solid white; }
+#board { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.group {
+  background:#faf5ed; border:1px solid var(--line);
+  border-radius:13px; padding:9px; min-width:0;
+}
+.group h3 { margin:0 0 8px; font-size:13px; }
+.tiles { display:flex; flex-wrap:wrap; gap:5px; align-items:flex-start; }
+.tile {
+  width:27px; height:61px; flex:0 0 27px; border-radius:6px;
+  border:1px solid #0002; box-shadow:1px 3px 0 #0002,0 4px 5px #0001;
+  display:flex; align-items:center; justify-content:center;
+  writing-mode:vertical-rl; font-size:10px; font-weight:900;
+  color:white; text-shadow:0 1px 2px #0005; padding:3px 0;
+  cursor:pointer; position:relative; touch-action:manipulation;
+}
+.tile.back {
+  color:#f7e9c7; background:repeating-linear-gradient(45deg,#47367c,#47367c 4px,#64519a 4px,#64519a 8px);
+  border:2px solid #d9c8ff;
+}
+.tile.selected { outline:3px solid #ffbf36; transform:translateY(-3px); }
+.tile:disabled { cursor:default; opacity:.7; }
+.tile .tiny { font-size:9px; }
+.tile.stack { margin-top:0; }
+#backlog { display:flex; flex-wrap:wrap; gap:5px; }
+.hidden { display:none !important; }
+#result { text-align:center; }
+#result .score { font-size:50px; color:var(--accent); font-weight:900; }
+footer { text-align:center; padding:8px 15px 30px; color:#8a7d72; font-size:11px; }
+@media(min-width:540px) {
+  #board { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .tile { width:31px; flex-basis:31px; height:70px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌈 컬러 스틱 게임</h1>
+  <p>럭컬을 모으고, 짝컬을 없애고, 최고 점수에 도전!</p>
+</header>
+<main>
+  <section class="panel" id="setup">
+    <h2>🎮 게임 설정</h2>
+    <label for="lucky">나의 행운색 (럭컬)</label>
+    <div id="colors"></div>
+    <label for="initial">초기 뒤집기 개수</label>
+    <select id="initial">
+      <option>5</option><option>6</option><option selected>7</option>
+      <option>8</option><option>9</option><option>10</option><option>11</option>
+    </select>
+    <label for="firstMode">초기 막대 뒤집기</label>
+    <select id="firstMode">
+      <option value="auto">자동으로 뒤집기</option>
+      <option value="manual">직접 하나씩 뒤집기</option>
+    </select>
+    <label for="bonusMode">보너스 막대 뒤집기</label>
+    <select id="bonusMode">
+      <option value="auto">자동으로 뒤집기</option>
+      <option value="manual">직접 하나씩 뒤집기</option>
+    </select>
+    <label for="resolveMode">럭컬 처리</label>
+    <select id="resolveMode">
+      <option value="manual">내가 직접 눌러서 진열하기</option>
+      <option value="auto">자동으로 진열하기</option>
+    </select>
+    <label for="pairMode">짝컬 처리</label>
+    <select id="pairMode">
+      <option value="manual">내가 같은 색 2개를 선택하기</option>
+      <option value="auto">짝컬 자동 제거</option>
+    </select>
+    <p class="small">한 팩은 50개이며 색상별로 최대한 고르게 섞여 있어. 막대가 부족하면 새 팩이 자동 추가돼.</p>
+    <button id="start" style="width:100%;margin-top:10px">게임 시작!</button>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><strong id="score">0</strong>뒤집은 막대</div>
+        <div class="stat"><strong id="left">0</strong>현재 팩 잔여</div>
+        <div class="stat"><strong id="packs">1</strong>팩 수</div>
+      </div>
+    </div>
+    <div class="panel">
+      <div id="message">게임을 준비하고 있어!</div>
+      <div class="row" style="margin-top:10px">
+        <button id="reveal" class="secondary">막대 뒤집기</button>
+        <button id="continue" class="secondary hidden">보너스 뒤집기</button>
+      </div>
+      <p id="batchInfo" class="small"></p>
+    </div>
+    <div class="panel">
+      <h2>🍀 럭컬 진열대</h2>
+      <p class="small">행운색 막대를 눌러 이곳으로 옮겨 줘.</p>
+      <div id="luckyArea" class="tiles"></div>
+    </div>
+    <div class="panel">
+      <h2>🀄 바닥 — 색깔별 막대</h2>
+      <p class="small">같은 색 막대 2개를 차례대로 누르면 짝컬로 제거돼. 한 번에 한 쌍씩 처리해 줘.</p>
+      <div id="board"></div>
+    </div>
+    <div class="panel">
+      <h2>✨ 짝컬 보관함</h2>
+      <div id="pairs" class="tiles"></div>
+      <p id="pairCount" class="small">아직 제거한 짝컬이 없어.</p>
+    </div>
+  </section>
+
+  <section id="result" class="panel hidden">
+    <h2>🎉 게임 종료!</h2>
+    <p>오늘의 최종 점수</p>
+    <div class="score" id="finalScore">0점</div>
+    <p id="resultText"></p>
+    <div class="row"><button id="again">다시 하기</button></div>
+  </section>
+</main>
+<footer>컬러 스틱 게임 · 내 방식대로 즐기는 한 판</footer>
+
+<script>
+(() => {
+  const COLORS = [
+    {name:"빨강",hex:"#e64b4b"},
+    {name:"노랑",hex:"#e3b52f"},
+    {name:"분홍",hex:"#e779ad"},
+    {name:"보라",hex:"#865bd1"},
+    {name:"검정",hex:"#35343b"},
+    {name:"파랑",hex:"#4389d8"},
+    {name:"회색",hex:"#858b95"}
+  ];
+  const $ = id => document.getElementById(id);
+  let lucky = 0, deck = [], face = [], luckySticks = [], paired = [];
+  let score = 0, packs = 0, pending = 0, batch = 0, phase = "setup";
+  let chosen = [], pairMode = "manual", resolveMode = "manual";
+  let firstMode = "auto", bonusMode = "auto", initialN = 7;
+  let nextId = 1;
+
+  function colorChoices() {
+    $("colors").innerHTML = "";
+    COLORS.forEach((c,i) => {
+      const b = document.createElement("button");
+      b.className = "colorChoice" + (i===lucky ? " selected" : "");
+      b.textContent = c.name;
+      b.style.background = c.hex;
+      b.onclick = () => { if(phase==="setup"){ lucky=i; colorChoices(); } };
+      $("colors").appendChild(b);
+    });
+  }
+  function makePack() {
+    const arr = [];
+    COLORS.forEach((c,i) => {
+      for(let j=0;j<7;j++) arr.push({id:nextId++,color:i,revealed:false});
+    });
+    arr.push({id:nextId++,color:Math.floor(Math.random()*7),revealed:false});
+    for(let i=arr.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    deck.push(...arr); packs++;
+  }
+  function ensure(n) {
+    while(deck.length<n) makePack();
+  }
+  function takeOne() {
+    if(deck.length===0) makePack();
+    const s=deck.shift();
+    s.revealed=true; face.push(s); score++;
+    return s;
+  }
+  function takeBatch(n) {
+    for(let i=0;i<n;i++) takeOne();
+  }
+  function setMessage(t){ $("message").textContent=t; }
+  function activeLucky(){ return face.filter(s=>s.color===lucky); }
+  function colorCounts(){
+    const counts={};
+    face.forEach(s=>{ if(s.color!==lucky) counts[s.color]=(counts[s.color]||0)+1; });
+    return counts;
+  }
+  function availablePairs(){
+    const counts=colorCounts();
+    return Object.keys(counts).filter(k=>counts[k]>=2).map(Number);
+  }
+  function anyEffects(){
+    return activeLucky().length>0 || availablePairs().length>0;
+  }
+  function startGame() {
+    lucky=Number(lucky);
+    initialN=Number($("initial").value);
+    firstMode=$("firstMode").value;
+    bonusMode=$("bonusMode").value;
+    resolveMode=$("resolveMode").value;
+    pairMode=$("pairMode").value;
+    deck=[]; face=[]; luckySticks=[]; paired=[];
+    score=0; packs=0; pending=0; batch=0; chosen=[]; nextId=1;
+    phase="initial";
+    ensure(initialN);
+    $("setup").classList.add("hidden");
+    $("result").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    if(firstMode==="auto") {
+      takeBatch(initialN); batch=0; phase="resolve";
+      process();
+    } else {
+      batch=initialN;
+      setMessage("초기 막대 "+initialN+"개를 직접 뒤집어 줘!");
+      update();
+    }
+  }
+  function revealOne() {
+    if(batch<=0) return;
+    takeOne(); batch--;
+    if(batch===0) {
+      phase="resolve";
+      setMessage("뒤집기를 마쳤어! 이제 럭컬과 짝컬을 확인하자.");
+      process();
+    } else {
+      setMessage("아직 "+batch+"개 더 뒤집어야 해!");
+      update();
+    }
+  }
+  function beginBonus() {
+    if(pending<=0) return;
+    batch=pending; pending=0; phase="bonus";
+    if(bonusMode==="auto") {
+      takeBatch(batch); batch=0; phase="resolve";
+      setMessage("보너스 막대를 모두 뒤집었어! 럭컬과 짝컬을 확인하자.");
+      process();
+    } else {
+      setMessage("보너스 막대 "+batch+"개를 직접 뒤집어 줘. 모두 뒤집은 뒤에 처리할 거야!");
+      update();
+    }
+  }
+  function process() {
+    if(phase==="setup" || phase==="ended") return;
+    if(batch>0) { update(); return; }
+
+    if(resolveMode==="auto") {
+      const ls=activeLucky();
+      ls.forEach(s=>moveLucky(s.id));
+    }
+    if(pairMode==="auto") {
+      let changed=true;
+      while(changed) {
+        changed=false;
+        const p=availablePairs()[0];
+        if(p!==undefined) {
+          const two=face.filter(s=>s.color===p).slice(0,2);
+          if(two.length===2){ removePair(two[0].id,two[1].id); changed=true; }
+        }
+      }
+    }
+
+    const ls=activeLucky().length;
+    const ps=availablePairs().length;
+    if(ls || ps) {
+      if(ls && ps) setMessage("🍀 럭컬 "+ls+"개와 짝컬 "+ps+"종류가 남아 있어! 럭컬을 진열하고 같은 색 막대 2개를 골라 줘.");
+      else if(ls) setMessage("🍀 럭컬 "+ls+"개가 남아 있어! 행운색 막대를 눌러 진열해 줘.");
+      else setMessage("🀄 짝컬이 남아 있어! 같은 색 막대 2개를 차례대로 눌러 제거해 줘.");
+      update();
+      return;
+    }
+    if(pending>0) { beginBonus(); return; }
+
+    endGame();
+  }
+  function moveLucky(id) {
+    const idx=face.findIndex(s=>s.id===id);
+    if(idx<0 || face[idx].color!==lucky) return;
+    const s=face.splice(idx,1)[0];
+    luckySticks.push(s);
+    pending+=2;
+    chosen=[];
+    setMessage("🍀 럭컬 진열 완료! 보너스 막대 2개가 추가됐어.");
+    update();
+    process();
+  }
+  function removePair(id1,id2) {
+    if(id1===id2) return;
+    const a=face.findIndex(s=>s.id===id1);
+    const b=face.findIndex(s=>s.id===id2);
+    if(a<0 || b<0 || face[a].color!==face[b].color || face[a].color===lucky) return;
+    const first=face[a], second=face[b];
+    face=face.filter(s=>s.id!==id1 && s.id!==id2);
+    paired.push(first,second);
+    pending+=1; chosen=[];
+    setMessage("✨ 짝컬 제거 성공! 보너스 막대 1개가 추가됐어.");
+    update();
+    process();
+  }
+  function clickStick(s) {
+    if(phase!=="resolve" || batch>0) return;
+    if(s.color===lucky) {
+      if(resolveMode==="manual") moveLucky(s.id);
+      return;
+    }
+    if(pairMode==="auto") return;
+    if(chosen.includes(s.id)) {
+      chosen=chosen.filter(id=>id!==s.id);
+      update(); return;
+    }
+    if(chosen.length===0) {
+      chosen=[s.id]; setMessage("좋아! 이제 같은 색 막대 하나를 더 골라 줘."); update(); return;
+    }
+    const first=face.find(x=>x.id===chosen[0]);
+    if(first && first.color===s.color) removePair(first.id,s.id);
+    else {
+      chosen=[s.id];
+      setMessage("색이 달라! 같은 색 막대 2개를 골라야 해."); update();
+    }
+  }
+  function makeTile(s,back=false) {
+    const b=document.createElement("button");
+    b.className="tile"+(back?" back":"")+(chosen.includes(s.id)?" selected":"");
+    b.style.background=back?"":COLORS[s.color].hex;
+    b.textContent=back?"✦":COLORS[s.color].name;
+    b.title=back?"뒤집기":COLORS[s.color].name;
+    b.onclick=()=>{
+      if(back) revealOne();
+      else clickStick(s);
+    };
+    return b;
+  }
+  function renderGroups() {
+    const board=$("board"); board.innerHTML="";
+    COLORS.forEach((c,i)=>{
+      const list=face.filter(s=>s.color===i);
+      if(!list.length) return;
+      const g=document.createElement("div"); g.className="group";
+      const h=document.createElement("h3");
+      h.textContent=c.name+" · "+list.length+"개";
+      g.appendChild(h);
+      const tiles=document.createElement("div"); tiles.className="tiles";
+      list.forEach(s=>tiles.appendChild(makeTile(s)));
+      g.appendChild(tiles); board.appendChild(g);
+    });
+    $("luckyArea").innerHTML="";
+    luckySticks.forEach(s=>{
+      const t=makeTile(s); t.onclick=null;
+      $("luckyArea").appendChild(t);
+    });
+    $("pairs").innerHTML="";
+    paired.forEach(s=>{
+      const t=makeTile(s); t.onclick=null;
+      $("pairs").appendChild(t);
+    });
+    $("pairCount").textContent=paired.length ? "제거한 짝컬: "+paired.length+"개 ("+(paired.length/2)+"쌍)" : "아직 제거한 짝컬이 없어.";
+  }
+  function update() {
+    $("score").textContent=score;
+    $("left").textContent=deck.length;
+    $("packs").textContent=packs;
+    renderGroups();
+    const manualReveal = batch>0 && ((phase==="initial" && firstMode==="manual") || (phase==="bonus" && bonusMode==="manual"));
+    $("reveal").classList.toggle("hidden",!manualReveal);
+    $("reveal").disabled=!manualReveal;
+    $("continue").classList.toggle("hidden",!(phase==="resolve" && pending>0 && !anyEffects()));
+    $("batchInfo").textContent=batch>0
+      ? "이번 단계에서 "+batch+"개를 더 뒤집어야 해."
+      : "보너스 대기: "+pending+"개";
+  }
+  function endGame() {
+    phase="ended";
+    $("game").classList.add("hidden");
+    $("result").classList.remove("hidden");
+    $("finalScore").textContent=score+"점";
+    $("resultText").textContent="럭컬 "+luckySticks.length+"개 · 짝컬 "+(paired.length/2)+"쌍 제거 · 바닥에 남은 막대 "+face.length+"개. 남은 막대도 점수에 포함했어!";
+  }
+  $("start").onclick=startGame;
+  $("reveal").onclick=revealOne;
+  $("continue").onclick=beginBonus;
+  $("again").onclick=()=>{
+    $("result").classList.add("hidden");
+    $("game").classList.add("hidden");
+    $("setup").classList.remove("hidden");
+    phase="setup"; colorChoices();
+  };
+  colorChoices();
+})();
+</script>
+</body>
+</html>
