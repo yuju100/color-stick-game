@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -7,129 +7,283 @@
 <title>컬러 막대 게임</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:12px;background:#f5f1e8;color:#302b35;font-family:system-ui,sans-serif}
-h1{text-align:center;font-size:25px;margin:8px 0 16px}
+
+body{
+  margin:0;
+  padding:12px;
+  background:#f5f1e8;
+  color:#302b35;
+  font-family:system-ui,sans-serif;
+}
+
+/* 컴퓨터 화면에서 게임 전체 너비 제한 */
+body>h1,
+body>#setup,
+body>#game{
+  width:100%;
+  max-width:760px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+h1{text-align:center;font-size:25px;margin:8px auto 16px}
 h2{font-size:17px;margin:0 0 12px}
-.panel{background:#fff;border-radius:16px;padding:12px;margin:12px 0;box-shadow:0 3px 9px #0000000c}
+
+.panel{
+  background:#fff;
+  border-radius:16px;
+  padding:12px;
+  margin:12px 0;
+  box-shadow:0 3px 9px #0000000c;
+}
+
 button,select{font:inherit}
-button{border:0;border-radius:11px;padding:10px 12px;background:#51417f;color:white;font-weight:700;cursor:pointer;touch-action:manipulation}
+button{
+  border:0;
+  border-radius:11px;
+  padding:10px 12px;
+  background:#51417f;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+  touch-action:manipulation;
+}
 button:disabled{opacity:.4}
 .secondary{background:#e9e4f3;color:#40355e}
-.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.settings{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
 .settings label{display:block;font-size:13px}
-select{width:100%;padding:8px;border:1px solid #ccc;border-radius:9px;margin-top:5px}
+select{
+  width:100%;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:9px;
+  margin-top:5px;
+}
 .colors{display:flex;gap:9px;flex-wrap:wrap}
-.colorChoice{width:36px;height:36px;padding:0;border:3px solid white;outline:1px solid #bbb;border-radius:9px}
+.colorChoice{
+  width:36px;
+  height:36px;
+  padding:0;
+  border:3px solid white;
+  outline:1px solid #bbb;
+  border-radius:9px;
+}
 .colorChoice.chosen{outline:3px solid #51417f}
 
-/* 안내창 높이를 고정해 게임판이 위아래로 움직이지 않도록 함 */
-.status-panel{height:120px;display:flex;flex-direction:column;overflow:hidden}
-.status{font-weight:700;line-height:1.45;white-space:pre-line;min-height:44px;max-height:58px;overflow:auto}
-.counter,.small{font-size:12px;color:#716a78}
+/* 안내창 높이 고정 */
+.status-panel{
+  height:120px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.status{
+  font-weight:700;
+  line-height:1.45;
+  white-space:pre-line;
+  min-height:44px;
+  max-height:58px;
+  overflow:auto;
+}
 .counter{height:18px;flex-shrink:0}
-.actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;flex-shrink:0}
+.counter,.small{font-size:12px;color:#716a78}
+.actionrow{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:8px;
+  flex-shrink:0;
+}
 .hidden{display:none!important}
 
-/* 막대 칸은 항상 10열 */
-.sticks{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;align-items:start}
-.stick{width:100%;min-width:0;height:62px;padding:0;position:relative;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002}
-.stick.back{color:#fff;background:repeating-linear-gradient(45deg,#51417f,#51417f 5px,#655393 5px,#655393 10px);border:1px solid #a99acb}
+/* 막대 영역: 데스크톱에서는 막대 크기 고정 */
+.sticks{
+  display:grid;
+  grid-template-columns:repeat(10,44px);
+  gap:4px;
+  align-items:start;
+}
+
+.stick{
+  width:44px;
+  min-width:44px;
+  height:62px;
+  padding:0;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:7px;
+  overflow:hidden;
+  flex-shrink:0;
+  box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002;
+}
+
+.stick.back{
+  color:#fff;
+  background:repeating-linear-gradient(
+    45deg,
+    #51417f,#51417f 5px,
+    #655393 5px,#655393 10px
+  );
+  border:1px solid #a99acb;
+}
 .stick.front{border:1px solid #ffffff55}
 .stick.selected{outline:3px solid #e0a62c;outline-offset:1px}
-.stick .pattern{position:absolute;inset:6px;border:1px solid #ffffff70;border-radius:4px;pointer-events:none}
-.empty-slot{width:100%;height:62px;visibility:hidden;pointer-events:none}
 
-/* 패널 높이를 고정: 막대가 사라져도 칸 영역이 줄어들지 않음 */
+.stick .pattern{
+  position:absolute;
+  inset:6px;
+  border:1px solid #ffffff70;
+  border-radius:4px;
+  pointer-events:none;
+}
+
+.empty-slot{
+  width:44px;
+  min-width:44px;
+  height:62px;
+  visibility:hidden;
+  pointer-events:none;
+}
+
+/* 막대 영역의 최소 높이 */
 .board-panel{overflow:hidden}
 #backs{min-height:326px}
 #fronts{min-height:62px}
 #discarded{min-height:62px}
 
+/* 뒤집기 모션 */
 @keyframes flipIn{
- 0%{transform:perspective(450px) rotateY(90deg) scale(.8);opacity:.15}
- 55%{transform:perspective(450px) rotateY(-12deg) scale(1.06);opacity:1}
- 100%{transform:perspective(450px) rotateY(0) scale(1);opacity:1}
+  0%{
+    transform:perspective(450px) rotateY(90deg) scale(.8);
+    opacity:.15;
+  }
+  55%{
+    transform:perspective(450px) rotateY(-12deg) scale(1.06);
+    opacity:1;
+  }
+  100%{
+    transform:perspective(450px) rotateY(0) scale(1);
+    opacity:1;
+  }
 }
+
+/* 막대가 놓이는 모션 */
 @keyframes landIn{
- 0%{transform:translateY(-18px) scale(.8);opacity:.2}
- 70%{transform:translateY(2px) scale(1.04);opacity:1}
- 100%{transform:translateY(0) scale(1);opacity:1}
+  0%{transform:translateY(-18px) scale(.8);opacity:.2}
+  70%{transform:translateY(2px) scale(1.04);opacity:1}
+  100%{transform:translateY(0) scale(1);opacity:1}
 }
+
 .flip-in{animation:flipIn .38s ease-out both}
 .land-in{animation:landIn .28s ease-out both}
 
-@media(max-width:420px){
- body{padding:8px}
- .panel{padding:9px}
- .sticks{gap:3px}
- .stick,.empty-slot{height:54px}
- #backs{min-height:285px}
- #fronts,#discarded{min-height:54px}
- .settings{gap:8px}
- .status-panel{height:124px}
+/* 모바일 화면 */
+@media(max-width:480px){
+  body{padding:8px}
+  .panel{padding:9px}
+
+  .sticks{
+    grid-template-columns:repeat(10,minmax(0,1fr));
+    gap:3px;
+  }
+
+  .stick,.empty-slot{
+    width:100%;
+    min-width:0;
+    height:54px;
+  }
+
+  #backs{min-height:285px}
+  #fronts,#discarded{min-height:54px}
+  .settings{gap:8px}
+  .status-panel{height:124px}
 }
+
 @media(prefers-reduced-motion:reduce){
- .flip-in,.land-in{animation:none!important}
+  .flip-in,.land-in{animation:none!important}
 }
 </style>
 </head>
 <body>
+
 <h1>🌈 컬러 막대 게임</h1>
 
 <section class="panel" id="setup">
- <h2>게임 설정</h2>
- <p class="small">럭컬 색깔을 골라 줘.</p>
- <div class="colors" id="colorChoices"></div>
- <div class="settings" style="margin-top:14px">
-  <label>처음 뒤집을 개수
-   <select id="initialCount">
-    <option>5</option><option>6</option><option>7</option>
-    <option>8</option><option>9</option><option>10</option><option>11</option>
-   </select>
-  </label>
-  <label>처음 뒤집기
-   <select id="initialMode">
-    <option value="manual">직접 누르기</option>
-    <option value="auto">자동 뒤집기</option>
-   </select>
-  </label>
- </div>
- <div class="actionrow"><button id="startBtn">게임 시작!</button></div>
+  <h2>게임 설정</h2>
+  <p class="small">럭컬 색깔을 골라 줘.</p>
+  <div class="colors" id="colorChoices"></div>
+
+  <div class="settings" style="margin-top:14px">
+    <label>처음 뒤집을 개수
+      <select id="initialCount">
+        <option>5</option><option>6</option><option>7</option>
+        <option>8</option><option>9</option><option>10</option>
+        <option>11</option>
+      </select>
+    </label>
+
+    <label>처음 뒤집기
+      <select id="initialMode">
+        <option value="manual">직접 누르기</option>
+        <option value="auto">자동 뒤집기</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="actionrow">
+    <button id="startBtn">게임 시작!</button>
+  </div>
 </section>
 
 <section id="game" class="hidden">
- <div class="panel status-panel">
-  <div class="status" id="status" aria-live="polite"></div>
-  <div class="counter" id="stats"></div>
-  <div class="actionrow">
-   <button class="secondary" id="cancelPair">짝 선택 취소</button>
-   <button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
+  <div class="panel status-panel">
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="counter" id="stats"></div>
+    <div class="actionrow">
+      <button class="secondary" id="cancelPair">짝 선택 취소</button>
+      <button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
+    </div>
   </div>
- </div>
 
- <div class="panel board-panel"><div class="sticks" id="backs"></div></div>
- <div class="panel board-panel"><div class="sticks" id="fronts"></div></div>
- <div class="panel board-panel"><div class="sticks" id="discarded"></div></div>
+  <div class="panel board-panel">
+    <div class="sticks" id="backs"></div>
+  </div>
 
- <div class="panel hidden" id="finished">
-  <h2>🎉 게임 종료!</h2>
-  <p id="finalScore" class="status"></p>
-  <button id="restart">다시 하기</button>
- </div>
+  <div class="panel board-panel">
+    <div class="sticks" id="fronts"></div>
+  </div>
+
+  <div class="panel board-panel">
+    <div class="sticks" id="discarded"></div>
+  </div>
+
+  <div class="panel hidden" id="finished">
+    <h2>🎉 게임 종료!</h2>
+    <p id="finalScore" class="status"></p>
+    <button id="restart">다시 하기</button>
+  </div>
 </section>
 
 <script>
 "use strict";
 
 const COLORS=[
- {name:"빨강",value:"#e34e4e"},
- {name:"노랑",value:"#e2b62e"},
- {name:"분홍",value:"#e779ad"},
- {name:"보라",value:"#865bd1"},
- {name:"검정",value:"#393740"},
- {name:"파랑",value:"#4389d8"},
- {name:"회색",value:"#858b95"}
+  {name:"빨강",value:"#e34e4e"},
+  {name:"노랑",value:"#e2b62e"},
+  {name:"분홍",value:"#e779ad"},
+  {name:"보라",value:"#865bd1"},
+  {name:"검정",value:"#393740"},
+  {name:"파랑",value:"#4389d8"},
+  {name:"회색",value:"#858b95"}
 ];
+
 const $=id=>document.getElementById(id);
 
 let luckyColor="빨강";
@@ -139,372 +293,478 @@ let phase="setup",ended=false,soundOn=true,audioCtx=null;
 let lastFlippedId=null,recentMovedIds=new Set(),notice="";
 
 function makeColorChoices(){
- $("colorChoices").innerHTML="";
- COLORS.forEach(c=>{
-  const b=document.createElement("button");
-  b.className="colorChoice"+(c.name===luckyColor?" chosen":"");
-  b.style.background=c.value;
-  b.title=c.name;
-  b.setAttribute("aria-label",c.name);
-  b.onclick=()=>{
-   if(phase!=="setup")return;
-   luckyColor=c.name;
-   makeColorChoices();
-  };
-  $("colorChoices").appendChild(b);
- });
+  $("colorChoices").innerHTML="";
+
+  COLORS.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="colorChoice"+(c.name===luckyColor?" chosen":"");
+    b.style.background=c.value;
+    b.title=c.name;
+    b.setAttribute("aria-label",c.name);
+
+    b.onclick=()=>{
+      if(phase!=="setup")return;
+      luckyColor=c.name;
+      makeColorChoices();
+    };
+
+    $("colorChoices").appendChild(b);
+  });
 }
 
-/* 소리: 나무를 가볍게 두드리는 짧은 소리 + 맑은 보너스 종소리 */
+/* 오디오 */
 function initAudio(){
- try{
-  const Ctx=window.AudioContext||window.webkitAudioContext;
-  if(!Ctx)return null;
-  if(!audioCtx)audioCtx=new Ctx();
-  if(audioCtx.state==="suspended")audioCtx.resume();
-  return audioCtx;
- }catch(e){return null}
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return null;
+    if(!audioCtx)audioCtx=new Ctx();
+    return audioCtx;
+  }catch(e){
+    return null;
+  }
 }
 
 function woodenTap(ctx,time,frequency,duration,volume){
- const osc=ctx.createOscillator();
- const gain=ctx.createGain();
- osc.type="triangle";
- osc.frequency.setValueAtTime(frequency,time);
- osc.frequency.exponentialRampToValueAtTime(Math.max(100,frequency*.55),time+duration);
- gain.gain.setValueAtTime(.0001,time);
- gain.gain.exponentialRampToValueAtTime(volume,time+.004);
- gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
- osc.connect(gain);
- gain.connect(ctx.destination);
- osc.start(time);
- osc.stop(time+duration+.015);
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+
+  osc.type="triangle";
+  osc.frequency.setValueAtTime(frequency,time);
+  osc.frequency.exponentialRampToValueAtTime(
+    Math.max(100,frequency*.55),time+duration
+  );
+
+  gain.gain.setValueAtTime(.0001,time);
+  gain.gain.exponentialRampToValueAtTime(volume,time+.004);
+  gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time+duration+.015);
 }
 
 function bell(ctx,time,frequency,duration,volume){
- const osc=ctx.createOscillator();
- const gain=ctx.createGain();
- osc.type="sine";
- osc.frequency.setValueAtTime(frequency,time);
- gain.gain.setValueAtTime(.0001,time);
- gain.gain.exponentialRampToValueAtTime(volume,time+.012);
- gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
- osc.connect(gain);
- gain.connect(ctx.destination);
- osc.start(time);
- osc.stop(time+duration+.02);
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+
+  osc.type="sine";
+  osc.frequency.setValueAtTime(frequency,time);
+
+  gain.gain.setValueAtTime(.0001,time);
+  gain.gain.exponentialRampToValueAtTime(volume,time+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(time);
+  osc.stop(time+duration+.02);
 }
 
-function sound(type){
- if(!soundOn)return;
- const ctx=initAudio();
- if(!ctx)return;
- const t=ctx.currentTime+.005;
+async function sound(type){
+  if(!soundOn)return;
 
- if(type==="flip"){
-  // 가볍고 짧은 나무 막대 뒤집는 소리: 딱!
-  woodenTap(ctx,t,920,.045,.16);
-  woodenTap(ctx,t+.025,660,.055,.055);
- }else if(type==="move"){
-  // 내려놓는 묵직한 탁!
-  woodenTap(ctx,t,390,.075,.19);
-  woodenTap(ctx,t+.018,250,.065,.07);
- }else if(type==="lucky"){
-  // 반짝, 띠링!
-  bell(ctx,t,880,.16,.12);
-  bell(ctx,t+.085,1175,.19,.11);
-  bell(ctx,t+.17,1568,.25,.09);
- }else if(type==="pair"){
-  woodenTap(ctx,t,520,.06,.13);
-  woodenTap(ctx,t+.07,390,.07,.14);
- }else if(type==="end"){
-  bell(ctx,t,784,.16,.08);
-  bell(ctx,t+.12,988,.18,.08);
-  bell(ctx,t+.25,1175,.25,.09);
- }
+  const ctx=initAudio();
+  if(!ctx)return;
+
+  try{
+    if(ctx.state!=="running"){
+      await ctx.resume();
+    }
+
+    if(ctx.state!=="running")return;
+
+    const t=ctx.currentTime+.005;
+
+    if(type==="flip"){
+      woodenTap(ctx,t,920,.045,.16);
+      woodenTap(ctx,t+.025,660,.055,.055);
+    }else if(type==="move"){
+      woodenTap(ctx,t,390,.075,.19);
+      woodenTap(ctx,t+.018,250,.065,.07);
+    }else if(type==="lucky"){
+      bell(ctx,t,880,.16,.12);
+      bell(ctx,t+.085,1175,.19,.11);
+      bell(ctx,t+.17,1568,.25,.09);
+    }else if(type==="pair"){
+      woodenTap(ctx,t,520,.06,.13);
+      woodenTap(ctx,t+.07,390,.07,.14);
+    }else if(type==="end"){
+      bell(ctx,t,784,.16,.08);
+      bell(ctx,t+.12,988,.18,.08);
+      bell(ctx,t+.25,1175,.25,.09);
+    }
+  }catch(e){
+    console.warn("효과음을 재생하지 못했습니다.",e);
+  }
 }
 
 function shuffle(a){
- for(let i=a.length-1;i>0;i--){
-  const j=Math.floor(Math.random()*(i+1));
-  [a[i],a[j]]=[a[j],a[i]];
- }
- return a;
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
 }
 
 function addPack(){
- const pack=[];
- COLORS.forEach(c=>{for(let i=0;i<7;i++)pack.push(c.name)});
- pack.push(COLORS[Math.floor(Math.random()*COLORS.length)].name);
- shuffle(pack);
- pack.forEach(color=>{
-  deck.push({
-   id:Math.random().toString(36).slice(2)+Date.now().toString(36)+Math.random(),
-   color,state:"back",order:0
+  const pack=[];
+
+  COLORS.forEach(c=>{
+    for(let i=0;i<7;i++)pack.push(c.name);
   });
- });
+
+  pack.push(COLORS[Math.floor(Math.random()*COLORS.length)].name);
+  shuffle(pack);
+
+  pack.forEach(color=>{
+    deck.push({
+      id:Math.random().toString(36).slice(2)+
+         Date.now().toString(36)+Math.random(),
+      color,
+      state:"back",
+      order:0
+    });
+  });
 }
 
-function getBacks(){return deck.filter(s=>s.state==="back")}
+function getBacks(){
+  return deck.filter(s=>s.state==="back");
+}
 
 function putInFrontSlot(s){
- const emptyIndex=frontSlots.indexOf(null);
- if(emptyIndex>=0)frontSlots[emptyIndex]=s.id;
- else frontSlots.push(s.id);
+  const emptyIndex=frontSlots.indexOf(null);
+  if(emptyIndex>=0)frontSlots[emptyIndex]=s.id;
+  else frontSlots.push(s.id);
 }
 
 function flipOne(kind){
- if(getBacks().length===0)addPack();
- const s=getBacks()[0];
- if(!s)return;
- s.state="front";
- s.order=++totalFlipped;
- s.kind=kind;
- fronts.push(s);
- putInFrontSlot(s);
- lastFlippedId=s.id;
- if(kind==="initial")initialRemaining--;
- if(kind==="bonus")pending=Math.max(0,pending-1);
- sound("flip");
+  if(getBacks().length===0)addPack();
+
+  const s=getBacks()[0];
+  if(!s)return;
+
+  s.state="front";
+  s.order=++totalFlipped;
+  s.kind=kind;
+
+  fronts.push(s);
+  putInFrontSlot(s);
+  lastFlippedId=s.id;
+
+  if(kind==="initial")initialRemaining--;
+  if(kind==="bonus")pending=Math.max(0,pending-1);
+
+  sound("flip");
 }
 
 function startGame(){
- initAudio();
- deck=[];fronts=[];discarded=[];selectedPair=[];frontSlots=[];
- totalFlipped=0;pending=0;
- initialRemaining=Number($("initialCount").value);
- lastFlippedId=null;recentMovedIds.clear();
- ended=false;phase="initial";notice="";
- addPack();
- $("setup").classList.add("hidden");
- $("game").classList.remove("hidden");
- $("finished").classList.add("hidden");
+  initAudio();
 
- if($("initialMode").value==="auto"){
-  while(initialRemaining>0)flipOne("initial");
-  phase="play";
-  notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
- }else{
-  notice=`처음 막대를 ${initialRemaining}개 직접 눌러 뒤집어 줘!`;
- }
- render();
+  deck=[];
+  fronts=[];
+  discarded=[];
+  selectedPair=[];
+  frontSlots=[];
+
+  totalFlipped=0;
+  pending=0;
+  initialRemaining=Number($("initialCount").value);
+  lastFlippedId=null;
+  recentMovedIds.clear();
+
+  ended=false;
+  phase="initial";
+  notice="";
+
+  addPack();
+
+  $("setup").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("finished").classList.add("hidden");
+
+  if($("initialMode").value==="auto"){
+    while(initialRemaining>0)flipOne("initial");
+    phase="play";
+    notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
+  }else{
+    notice=`처음 막대를 ${initialRemaining}개 직접 눌러 뒤집어 줘!`;
+  }
+
+  render();
 }
 
 function tapBack(id){
- if(ended)return;
- initAudio();
- const s=deck.find(x=>x.id===id&&x.state==="back");
- if(!s)return;
+  if(ended)return;
 
- if(phase==="initial"){
-  flipOne("initial");
-  if(initialRemaining<=0){
-   phase="play";
-   notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
-  }else{
-   notice=`처음 막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`;
+  initAudio();
+
+  const s=deck.find(x=>x.id===id&&x.state==="back");
+  if(!s)return;
+
+  if(phase==="initial"){
+    flipOne("initial");
+
+    if(initialRemaining<=0){
+      phase="play";
+      notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
+    }else{
+      notice=`처음 막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`;
+    }
+
+    render();
+    return;
   }
-  render();
-  return;
- }
 
- if(phase==="play"&&pending>0){
-  flipOne("bonus");
-  notice=pending>0
-   ?`보너스 막대 ${pending}개 남음. 더 뒤집거나 보이는 효과를 처리해 줘!`
-   :"보너스를 모두 뒤집었어! 새로 나온 럭컬과 짝컬을 확인해 줘.";
-  render();
-  checkEnd();
-  return;
- }
+  if(phase==="play"&&pending>0){
+    flipOne("bonus");
 
- notice="먼저 보이는 럭컬이나 같은 색 짝을 처리해 줘!";
- render();
+    notice=pending>0
+      ?`보너스 막대 ${pending}개 남음. 더 뒤집거나 보이는 효과를 처리해 줘!`
+      :"보너스를 모두 뒤집었어! 새로 나온 럭컬과 짝컬을 확인해 줘.";
+
+    render();
+    checkEnd();
+    return;
+  }
+
+  notice="먼저 보이는 럭컬이나 같은 색 짝을 처리해 줘!";
+  render();
 }
 
 function moveToDiscard(sticks,type){
- const moving=sticks.filter(s=>fronts.some(f=>f.id===s.id));
- if(!moving.length)return;
- moving.forEach(s=>{
-  s.state=type;
-  recentMovedIds.add(s.id);
-  discarded.push(s);
-  const slotIndex=frontSlots.indexOf(s.id);
-  if(slotIndex>=0)frontSlots[slotIndex]=null;
- });
- const ids=new Set(moving.map(s=>s.id));
- fronts=fronts.filter(s=>!ids.has(s.id));
- selectedPair=selectedPair.filter(id=>!ids.has(id));
- sound("move");
+  const moving=sticks.filter(s=>fronts.some(f=>f.id===s.id));
+  if(!moving.length)return;
+
+  moving.forEach(s=>{
+    s.state=type;
+    recentMovedIds.add(s.id);
+    discarded.push(s);
+
+    const slotIndex=frontSlots.indexOf(s.id);
+    if(slotIndex>=0)frontSlots[slotIndex]=null;
+  });
+
+  const ids=new Set(moving.map(s=>s.id));
+  fronts=fronts.filter(s=>!ids.has(s.id));
+  selectedPair=selectedPair.filter(id=>!ids.has(id));
+
+  sound("move");
 }
 
 function tapFront(id){
- if(ended||phase!=="play")return;
- initAudio();
- const s=fronts.find(x=>x.id===id&&x.state==="front");
- if(!s)return;
+  if(ended||phase!=="play")return;
 
- if(s.color===luckyColor){
+  initAudio();
+
+  const s=fronts.find(x=>x.id===id&&x.state==="front");
+  if(!s)return;
+
+  if(s.color===luckyColor){
+    selectedPair=[];
+    moveToDiscard([s],"luckySelected");
+    pending+=2;
+
+    notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
+
+    sound("lucky");
+    render();
+    checkEnd();
+    return;
+  }
+
+  if(selectedPair.includes(id)){
+    selectedPair=[];
+    notice="짝 선택을 취소했어.";
+    render();
+    return;
+  }
+
+  if(selectedPair.length===0){
+    selectedPair=[id];
+    notice="같은 색 막대 하나를 더 눌러 짝을 만들어 줘.";
+    render();
+    return;
+  }
+
+  const first=fronts.find(x=>x.id===selectedPair[0]);
+
+  if(!first||first.color!==s.color){
+    selectedPair=[id];
+    notice="같은 색 막대 하나를 더 눌러 줘.";
+    render();
+    return;
+  }
+
   selectedPair=[];
-  moveToDiscard([s],"luckySelected");
-  pending+=2;
-  notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
-  sound("lucky");
+  moveToDiscard([first,s],"paired");
+  pending++;
+
+  notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
+
+  sound("pair");
   render();
   checkEnd();
-  return;
- }
-
- if(selectedPair.includes(id)){
-  selectedPair=[];
-  notice="짝 선택을 취소했어.";
-  render();
-  return;
- }
-
- if(selectedPair.length===0){
-  selectedPair=[id];
-  notice="같은 색 막대 하나를 더 눌러 짝을 만들어 줘.";
-  render();
-  return;
- }
-
- const first=fronts.find(x=>x.id===selectedPair[0]);
- if(!first||first.color!==s.color){
-  selectedPair=[id];
-  notice="같은 색 막대 하나를 더 눌러 줘.";
-  render();
-  return;
- }
-
- selectedPair=[];
- moveToDiscard([first,s],"paired");
- pending++;
- notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
- sound("pair");
- render();
- checkEnd();
 }
 
 function cancelPair(){
- if(!selectedPair.length)return;
- selectedPair=[];
- notice="짝 선택을 취소했어.";
- render();
+  if(!selectedPair.length)return;
+  selectedPair=[];
+  notice="짝 선택을 취소했어.";
+  render();
 }
 
 function hasManualEffects(){
- if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
- const counts={};
- fronts.forEach(s=>{
-  if(s.state==="front"&&s.color!==luckyColor)
-   counts[s.color]=(counts[s.color]||0)+1;
- });
- return Object.values(counts).some(n=>n>=2);
+  if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
+
+  const counts={};
+
+  fronts.forEach(s=>{
+    if(s.state==="front"&&s.color!==luckyColor){
+      counts[s.color]=(counts[s.color]||0)+1;
+    }
+  });
+
+  return Object.values(counts).some(n=>n>=2);
 }
 
 function checkEnd(){
- if(ended||phase!=="play")return;
- if(pending>0)return;
- if(hasManualEffects())return;
- if(selectedPair.length>0)return;
- endGame();
+  if(ended||phase!=="play")return;
+  if(pending>0)return;
+  if(hasManualEffects())return;
+  if(selectedPair.length>0)return;
+  endGame();
 }
 
 function endGame(){
- if(ended)return;
- if(fronts.length)moveToDiscard([...fronts],"final");
- ended=true;
- phase="ended";
- selectedPair=[];
- notice="모든 효과를 처리했어!";
- $("finished").classList.remove("hidden");
- $("finalScore").textContent=`총 뒤집은 막대: ${totalFlipped}개`;
- sound("end");
- render();
+  if(ended)return;
+
+  if(fronts.length)moveToDiscard([...fronts],"final");
+
+  ended=true;
+  phase="ended";
+  selectedPair=[];
+  notice="모든 효과를 처리했어!";
+
+  $("finished").classList.remove("hidden");
+  $("finalScore").textContent=`총 뒤집은 막대: ${totalFlipped}개`;
+
+  sound("end");
+  render();
 }
 
 function makeStick(s,isBack,area){
- const b=document.createElement("button");
- b.className="stick "+(isBack?"back":"front");
- if(selectedPair.includes(s.id))b.classList.add("selected");
+  const b=document.createElement("button");
 
- if(isBack){
+  b.className="stick "+(isBack?"back":"front");
+
+  if(selectedPair.includes(s.id))b.classList.add("selected");
+
+  if(isBack){
+    b.innerHTML='<span class="pattern"></span>';
+    b.setAttribute("aria-label","뒤집힌 막대");
+    b.onclick=()=>tapBack(s.id);
+    return b;
+  }
+
+  const color=COLORS.find(c=>c.name===s.color);
+  b.style.background=color?color.value:"#888";
   b.innerHTML='<span class="pattern"></span>';
-  b.setAttribute("aria-label","뒤집힌 막대");
-  b.onclick=()=>tapBack(s.id);
-  return b;
- }
+  b.setAttribute("aria-label",s.color+" 막대");
 
- const color=COLORS.find(c=>c.name===s.color);
- b.style.background=color?color.value:"#888";
- b.innerHTML='<span class="pattern"></span>';
- b.setAttribute("aria-label","색깔 막대");
- if(area==="front"&&s.state==="front")b.onclick=()=>tapFront(s.id);
- else b.disabled=true;
- if(s.id===lastFlippedId)b.classList.add("flip-in");
- if(recentMovedIds.has(s.id))b.classList.add("land-in");
- return b;
+  if(area==="front"&&s.state==="front"){
+    b.onclick=()=>tapFront(s.id);
+  }else{
+    b.disabled=true;
+  }
+
+  if(s.id===lastFlippedId)b.classList.add("flip-in");
+  if(recentMovedIds.has(s.id))b.classList.add("land-in");
+
+  return b;
 }
 
 function makeEmptySlot(){
- const empty=document.createElement("div");
- empty.className="empty-slot";
- empty.setAttribute("aria-hidden","true");
- return empty;
+  const empty=document.createElement("div");
+  empty.className="empty-slot";
+  empty.setAttribute("aria-hidden","true");
+  return empty;
 }
 
 function render(){
- // 뒷면: 뒤집힌 자리도 빈칸으로 남겨 전체 그리드가 줄어들지 않게 함
- $("backs").innerHTML="";
- deck.forEach(s=>{
-  if(s.state==="back"){
-   $("backs").appendChild(makeStick(s,true,"back"));
-  }else{
-   $("backs").appendChild(makeEmptySlot());
-  }
- });
+  $("backs").innerHTML="";
 
- // 앞면: 독립적인 자리 배열을 사용해 빈칸 위치를 보존
- $("fronts").innerHTML="";
- frontSlots.forEach(id=>{
-  if(id===null){
-   $("fronts").appendChild(makeEmptySlot());
-   return;
-  }
-  const s=fronts.find(x=>x.id===id&&x.state==="front");
-  $("fronts").appendChild(s?makeStick(s,false,"front"):makeEmptySlot());
- });
+  deck.forEach(s=>{
+    if(s.state==="back"){
+      $("backs").appendChild(makeStick(s,true,"back"));
+    }else{
+      $("backs").appendChild(makeEmptySlot());
+    }
+  });
 
- $("discarded").innerHTML="";
- discarded.forEach(s=>$("discarded").appendChild(makeStick(s,false,"discarded")));
+  $("fronts").innerHTML="";
 
- $("status").textContent=notice;
- $("stats").textContent=`럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
- $("cancelPair").disabled=selectedPair.length===0;
- $("soundToggle").textContent=soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
+  frontSlots.forEach(id=>{
+    if(id===null){
+      $("fronts").appendChild(makeEmptySlot());
+      return;
+    }
 
- requestAnimationFrame(()=>{
-  lastFlippedId=null;
-  recentMovedIds.clear();
- });
+    const s=fronts.find(x=>x.id===id&&x.state==="front");
+    $("fronts").appendChild(
+      s?makeStick(s,false,"front"):makeEmptySlot()
+    );
+  });
+
+  $("discarded").innerHTML="";
+
+  discarded.forEach(s=>{
+    $("discarded").appendChild(makeStick(s,false,"discarded"));
+  });
+
+  $("status").textContent=notice;
+  $("stats").textContent=
+    `럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
+
+  $("cancelPair").disabled=selectedPair.length===0;
+  $("soundToggle").textContent=
+    soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
+
+  requestAnimationFrame(()=>{
+    lastFlippedId=null;
+    recentMovedIds.clear();
+  });
 }
 
 $("startBtn").onclick=startGame;
 $("cancelPair").onclick=cancelPair;
-$("soundToggle").onclick=()=>{
- soundOn=!soundOn;
- if(soundOn)sound("flip");
- render();
+
+$("soundToggle").onclick=async()=>{
+  soundOn=!soundOn;
+
+  if(soundOn){
+    const ctx=initAudio();
+    if(ctx){
+      try{
+        if(ctx.state!=="running")await ctx.resume();
+        sound("flip");
+      }catch(e){}
+    }
+  }
+
+  render();
 };
+
 $("restart").onclick=()=>{
- phase="setup";ended=false;
- $("game").classList.add("hidden");
- $("setup").classList.remove("hidden");
- makeColorChoices();
+  phase="setup";
+  ended=false;
+  $("game").classList.add("hidden");
+  $("setup").classList.remove("hidden");
+  makeColorChoices();
 };
 
 makeColorChoices();
 </script>
 </body>
 </html>
+```
