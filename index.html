@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -8,132 +9,66 @@
 *{box-sizing:border-box}
 
 body{
-  margin:0;
-  padding:12px;
-  background:#f5f1e8;
-  color:#302b35;
+  margin:0;padding:12px;background:#f5f1e8;color:#302b35;
   font-family:system-ui,sans-serif;
 }
-
-body>h1,
-body>#setup,
-body>#game{
-  width:100%;
-  max-width:760px;
-  margin-left:auto;
-  margin-right:auto;
+body>h1,body>#setup,body>#game{
+  width:100%;max-width:760px;margin-left:auto;margin-right:auto;
 }
-
 h1{text-align:center;font-size:25px;margin:8px auto 16px}
 h2{font-size:17px;margin:0 0 12px}
-
 .panel{
-  background:#fff;
-  border-radius:16px;
-  padding:12px;
-  margin:12px 0;
+  background:#fff;border-radius:16px;padding:12px;margin:12px 0;
   box-shadow:0 3px 9px #0000000c;
 }
-
 button,select,input{font:inherit}
 button{
-  border:0;
-  border-radius:11px;
-  padding:10px 12px;
-  background:#51417f;
-  color:white;
-  font-weight:700;
-  cursor:pointer;
-  touch-action:manipulation;
+  border:0;border-radius:11px;padding:10px 12px;
+  background:#51417f;color:white;font-weight:700;
+  cursor:pointer;touch-action:manipulation;
 }
 button:disabled{opacity:.4}
 .secondary{background:#e9e4f3;color:#40355e}
-
-.settings{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
+.settings{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .settings label{display:block;font-size:13px}
 select{
-  width:100%;
-  padding:8px;
-  border:1px solid #ccc;
-  border-radius:9px;
-  margin-top:5px;
+  width:100%;padding:8px;border:1px solid #ccc;
+  border-radius:9px;margin-top:5px;
 }
-.name-setting{
-  margin-bottom:14px;
-}
-.name-setting label{
-  display:block;
-  font-size:13px;
-  margin-bottom:5px;
-}
+.name-setting{margin-bottom:14px}
+.name-setting label{display:block;font-size:13px;margin-bottom:5px}
 .name-setting input{
-  width:100%;
-  padding:9px 10px;
-  border:1px solid #ccc;
-  border-radius:9px;
+  width:100%;padding:9px 10px;border:1px solid #ccc;border-radius:9px;
 }
 .colors{display:flex;gap:9px;flex-wrap:wrap}
 .colorChoice{
-  width:36px;
-  height:36px;
-  padding:0;
-  border:3px solid white;
-  outline:1px solid #bbb;
-  border-radius:9px;
+  width:36px;height:36px;padding:0;border:3px solid white;
+  outline:1px solid #bbb;border-radius:9px;
 }
 .colorChoice.chosen{outline:3px solid #51417f}
-
 .status-panel{
-  height:120px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+  height:120px;display:flex;flex-direction:column;overflow:hidden;
 }
 .status{
-  font-weight:700;
-  line-height:1.45;
-  white-space:pre-line;
-  min-height:44px;
-  max-height:58px;
-  overflow:auto;
+  font-weight:700;line-height:1.45;white-space:pre-line;
+  min-height:44px;max-height:58px;overflow:auto;
 }
 .counter{height:18px;flex-shrink:0}
 .counter,.small{font-size:12px;color:#716a78}
 .actionrow{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:8px;
-  flex-shrink:0;
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;flex-shrink:0;
 }
 .hidden{display:none!important}
-
 .sticks{
-  display:grid;
-  grid-template-columns:repeat(10,44px);
-  gap:4px;
-  align-items:start;
+  display:grid;grid-template-columns:repeat(10,44px);
+  gap:4px;align-items:start;
 }
-
 .stick{
-  width:44px;
-  min-width:44px;
-  height:62px;
-  padding:0;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:7px;
-  overflow:hidden;
-  flex-shrink:0;
+  width:44px;min-width:44px;height:62px;padding:0;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:7px;overflow:hidden;flex-shrink:0;
   box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002;
 }
-
 /* 막대 뒷면 디자인 */
 .stick.back{
   color:#fff;
@@ -141,8 +76,7 @@ select{
     radial-gradient(circle at 25% 20%,#ffffff75 0 1px,transparent 2px),
     radial-gradient(circle at 75% 75%,#ffffff55 0 1.5px,transparent 2.5px),
     repeating-linear-gradient(
-      135deg,
-      #332653 0px,#332653 5px,
+      135deg,#332653 0px,#332653 5px,
       #51417f 5px,#51417f 10px,
       #704d91 10px,#704d91 15px
     );
@@ -150,73 +84,41 @@ select{
 }
 .stick.front{border:1px solid #ffffff55}
 .stick.selected{outline:3px solid #e0a62c;outline-offset:1px}
-
 .stick .pattern{
-  position:absolute;
-  inset:6px;
-  border:1px solid #ffffff70;
-  border-radius:4px;
-  pointer-events:none;
+  position:absolute;inset:6px;border:1px solid #ffffff70;
+  border-radius:4px;pointer-events:none;
 }
-
 .empty-slot{
-  width:44px;
-  min-width:44px;
-  height:62px;
-  visibility:hidden;
-  pointer-events:none;
+  width:44px;min-width:44px;height:62px;
+  visibility:hidden;pointer-events:none;
 }
-
 .board-panel{overflow:hidden}
 #backs{min-height:326px}
-#fronts{min-height:62px}
-#discarded{min-height:62px}
+#fronts,#discarded{min-height:62px}
 
 @keyframes flipIn{
-  0%{
-    transform:perspective(450px) rotateY(90deg) scale(.8);
-    opacity:.15;
-  }
-  55%{
-    transform:perspective(450px) rotateY(-12deg) scale(1.06);
-    opacity:1;
-  }
-  100%{
-    transform:perspective(450px) rotateY(0) scale(1);
-    opacity:1;
-  }
+  0%{transform:perspective(450px) rotateY(90deg) scale(.8);opacity:.15}
+  55%{transform:perspective(450px) rotateY(-12deg) scale(1.06);opacity:1}
+  100%{transform:perspective(450px) rotateY(0) scale(1);opacity:1}
 }
-
 @keyframes landIn{
   0%{transform:translateY(-18px) scale(.8);opacity:.2}
   70%{transform:translateY(2px) scale(1.04);opacity:1}
   100%{transform:translateY(0) scale(1);opacity:1}
 }
-
 .flip-in{animation:flipIn .38s ease-out both}
 .land-in{animation:landIn .28s ease-out both}
 
 @media(max-width:480px){
   body{padding:8px}
   .panel{padding:9px}
-
-  .sticks{
-    grid-template-columns:repeat(10,minmax(0,1fr));
-    gap:3px;
-  }
-
-  .stick,.empty-slot{
-    width:100%;
-    min-width:0;
-    height:54px;
-  }
-
+  .sticks{grid-template-columns:repeat(10,minmax(0,1fr));gap:3px}
+  .stick,.empty-slot{width:100%;min-width:0;height:54px}
   #backs{min-height:285px}
   #fronts,#discarded{min-height:54px}
   .settings{gap:8px}
   .status-panel{height:124px}
 }
-
 @media(prefers-reduced-motion:reduce){
   .flip-in,.land-in{animation:none!important}
 }
@@ -229,16 +131,10 @@ select{
 <section class="panel" id="setup">
   <h2>게임 설정</h2>
 
-  <!-- 이름 입력 -->
   <div class="name-setting">
     <label for="playerName">플레이어 이름</label>
-    <input
-      id="playerName"
-      type="text"
-      maxlength="20"
-      placeholder="이름을 입력해 줘!"
-      autocomplete="off"
-    >
+    <input id="playerName" type="text" maxlength="20"
+      placeholder="이름을 입력해 줘!" autocomplete="off">
     <p class="small">이름을 입력하면 위쪽 제목이 바로 바뀌어!</p>
   </div>
 
@@ -281,17 +177,9 @@ select{
     </div>
   </div>
 
-  <div class="panel board-panel">
-    <div class="sticks" id="backs"></div>
-  </div>
-
-  <div class="panel board-panel">
-    <div class="sticks" id="fronts"></div>
-  </div>
-
-  <div class="panel board-panel">
-    <div class="sticks" id="discarded"></div>
-  </div>
+  <div class="panel board-panel"><div class="sticks" id="backs"></div></div>
+  <div class="panel board-panel"><div class="sticks" id="fronts"></div></div>
+  <div class="panel board-panel"><div class="sticks" id="discarded"></div></div>
 
   <div class="panel hidden" id="finished">
     <h2>🎉 게임 종료!</h2>
@@ -310,7 +198,8 @@ const COLORS=[
   {name:"보라",value:"#865bd1"},
   {name:"검정",value:"#393740"},
   {name:"파랑",value:"#4389d8"},
-  {name:"회색",value:"#858b95"}
+  {name:"회색",value:"#858b95"},
+  {name:"초록",value:"#39a96b"}
 ];
 
 const $=id=>document.getElementById(id);
@@ -321,33 +210,27 @@ let totalFlipped=0,pending=0,initialRemaining=0;
 let phase="setup",ended=false,soundOn=true,audioCtx=null;
 let lastFlippedId=null,recentMovedIds=new Set(),notice="";
 
-/* 이름 입력 즉시 제목 변경 */
 function updateTitle(){
   const name=$("playerName").value.trim();
-
   $("gameTitle").textContent=name
     ?`${name}의 컬러팡팡 🌈`
     :"🌈 컬러팡팡";
 }
-
 $("playerName").addEventListener("input",updateTitle);
 
 function makeColorChoices(){
   $("colorChoices").innerHTML="";
-
   COLORS.forEach(c=>{
     const b=document.createElement("button");
     b.className="colorChoice"+(c.name===luckyColor?" chosen":"");
     b.style.background=c.value;
     b.title=c.name;
     b.setAttribute("aria-label",c.name);
-
     b.onclick=()=>{
       if(phase!=="setup")return;
       luckyColor=c.name;
       makeColorChoices();
     };
-
     $("colorChoices").appendChild(b);
   });
 }
@@ -359,25 +242,20 @@ function initAudio(){
     if(!Ctx)return null;
     if(!audioCtx)audioCtx=new Ctx();
     return audioCtx;
-  }catch(e){
-    return null;
-  }
+  }catch(e){return null}
 }
 
 function woodenTap(ctx,time,frequency,duration,volume){
   const osc=ctx.createOscillator();
   const gain=ctx.createGain();
-
   osc.type="triangle";
   osc.frequency.setValueAtTime(frequency,time);
   osc.frequency.exponentialRampToValueAtTime(
     Math.max(100,frequency*.55),time+duration
   );
-
   gain.gain.setValueAtTime(.0001,time);
   gain.gain.exponentialRampToValueAtTime(volume,time+.004);
   gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
-
   osc.connect(gain);
   gain.connect(ctx.destination);
   osc.start(time);
@@ -387,14 +265,11 @@ function woodenTap(ctx,time,frequency,duration,volume){
 function bell(ctx,time,frequency,duration,volume){
   const osc=ctx.createOscillator();
   const gain=ctx.createGain();
-
   osc.type="sine";
   osc.frequency.setValueAtTime(frequency,time);
-
   gain.gain.setValueAtTime(.0001,time);
   gain.gain.exponentialRampToValueAtTime(volume,time+.012);
   gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
-
   osc.connect(gain);
   gain.connect(ctx.destination);
   osc.start(time);
@@ -403,14 +278,11 @@ function bell(ctx,time,frequency,duration,volume){
 
 async function sound(type){
   if(!soundOn)return;
-
   const ctx=initAudio();
   if(!ctx)return;
-
   try{
     if(ctx.state!=="running")await ctx.resume();
     if(ctx.state!=="running")return;
-
     const t=ctx.currentTime+.005;
 
     if(type==="flip"){
@@ -444,26 +316,38 @@ function shuffle(a){
   return a;
 }
 
-/* 한 판 50개: 럭키 컬러 10개 + 나머지 색깔 40개 */
+/*
+  한 팩은 총 50개.
+  럭컬 8개 고정 + 일반 색깔 7종류 42개.
+  일반 색깔은 매 팩마다 무작위로 배분되며,
+  각 색깔 개수는 짝수(최소 2개, 최대 12개).
+*/
 function addPack(){
   const pack=[];
 
-  for(let i=0;i<10;i++){
-    pack.push(luckyColor);
-  }
+  for(let i=0;i<8;i++)pack.push(luckyColor);
 
   const otherColors=COLORS
     .map(c=>c.name)
     .filter(name=>name!==luckyColor);
 
-  /* 일반 색깔 6개를 7,7,7,7,6,6개씩 배분 */
-  const counts=[7,7,7,7,6,6];
-  shuffle(counts);
+  // 각 색깔을 우선 2개씩 배정한다.
+  const counts=Array(otherColors.length).fill(2);
+  let remaining=42-counts.reduce((sum,n)=>sum+n,0);
+
+  // 남은 개수를 2개 단위로 무작위 배분한다.
+  while(remaining>0){
+    const candidates=counts
+      .map((n,i)=>i)
+      .filter(i=>counts[i]<12);
+
+    const i=candidates[Math.floor(Math.random()*candidates.length)];
+    counts[i]+=2;
+    remaining-=2;
+  }
 
   otherColors.forEach((color,index)=>{
-    for(let i=0;i<counts[index];i++){
-      pack.push(color);
-    }
+    for(let i=0;i<counts[index];i++)pack.push(color);
   });
 
   shuffle(pack);
@@ -491,28 +375,23 @@ function putInFrontSlot(s){
 
 function flipOne(kind){
   if(getBacks().length===0)addPack();
-
   const s=getBacks()[0];
   if(!s)return;
 
   s.state="front";
   s.order=++totalFlipped;
   s.kind=kind;
-
   fronts.push(s);
   putInFrontSlot(s);
   lastFlippedId=s.id;
 
   if(kind==="initial")initialRemaining--;
   if(kind==="bonus")pending=Math.max(0,pending-1);
-
   sound("flip");
 }
 
 function startGame(){
   initAudio();
-
-  /* 게임 시작 시에도 현재 입력된 이름으로 제목 갱신 */
   updateTitle();
 
   deck=[];
@@ -520,13 +399,11 @@ function startGame(){
   discarded=[];
   selectedPair=[];
   frontSlots=[];
-
   totalFlipped=0;
   pending=0;
   initialRemaining=Number($("initialCount").value);
   lastFlippedId=null;
   recentMovedIds.clear();
-
   ended=false;
   phase="initial";
   notice="";
@@ -544,39 +421,32 @@ function startGame(){
   }else{
     notice=`처음 막대를 ${initialRemaining}개 직접 눌러 뒤집어 줘!`;
   }
-
   render();
 }
 
 function tapBack(id){
   if(ended)return;
-
   initAudio();
-
   const s=deck.find(x=>x.id===id&&x.state==="back");
   if(!s)return;
 
   if(phase==="initial"){
     flipOne("initial");
-
     if(initialRemaining<=0){
       phase="play";
       notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
     }else{
       notice=`처음 막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`;
     }
-
     render();
     return;
   }
 
   if(phase==="play"&&pending>0){
     flipOne("bonus");
-
     notice=pending>0
       ?`보너스 막대 ${pending}개 남음. 더 뒤집거나 보이는 효과를 처리해 줘!`
       :"보너스를 모두 뒤집었어! 새로 나온 럭컬과 짝컬을 확인해 줘.";
-
     render();
     checkEnd();
     return;
@@ -594,7 +464,6 @@ function moveToDiscard(sticks,type){
     s.state=type;
     recentMovedIds.add(s.id);
     discarded.push(s);
-
     const slotIndex=frontSlots.indexOf(s.id);
     if(slotIndex>=0)frontSlots[slotIndex]=null;
   });
@@ -606,7 +475,6 @@ function moveToDiscard(sticks,type){
 
 function tapFront(id){
   if(ended||phase!=="play")return;
-
   initAudio();
 
   const s=fronts.find(x=>x.id===id&&x.state==="front");
@@ -616,9 +484,7 @@ function tapFront(id){
     selectedPair=[];
     moveToDiscard([s],"luckySelected");
     pending+=2;
-
     notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
-
     sound("lucky");
     render();
     checkEnd();
@@ -651,9 +517,7 @@ function tapFront(id){
   selectedPair=[];
   moveToDiscard([first,s],"paired");
   pending++;
-
   notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
-
   sound("pair");
   render();
   checkEnd();
@@ -668,7 +532,6 @@ function cancelPair(){
 
 function hasManualEffects(){
   if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
-
   const counts={};
 
   fronts.forEach(s=>{
@@ -690,7 +553,6 @@ function checkEnd(){
 
 function endGame(){
   if(ended)return;
-
   if(fronts.length)moveToDiscard([...fronts],"final");
 
   ended=true;
@@ -700,14 +562,12 @@ function endGame(){
 
   $("finished").classList.remove("hidden");
   $("finalScore").textContent=`총 뒤집은 막대: ${totalFlipped}개`;
-
   sound("end");
   render();
 }
 
 function makeStick(s,isBack,area){
   const b=document.createElement("button");
-
   b.className="stick "+(isBack?"back":"front");
 
   if(selectedPair.includes(s.id))b.classList.add("selected");
@@ -724,15 +584,11 @@ function makeStick(s,isBack,area){
   b.innerHTML='<span class="pattern"></span>';
   b.setAttribute("aria-label",s.color+" 막대");
 
-  if(area==="front"&&s.state==="front"){
-    b.onclick=()=>tapFront(s.id);
-  }else{
-    b.disabled=true;
-  }
+  if(area==="front"&&s.state==="front")b.onclick=()=>tapFront(s.id);
+  else b.disabled=true;
 
   if(s.id===lastFlippedId)b.classList.add("flip-in");
   if(recentMovedIds.has(s.id))b.classList.add("land-in");
-
   return b;
 }
 
@@ -745,42 +601,30 @@ function makeEmptySlot(){
 
 function render(){
   $("backs").innerHTML="";
-
   deck.forEach(s=>{
-    if(s.state==="back"){
-      $("backs").appendChild(makeStick(s,true,"back"));
-    }else{
-      $("backs").appendChild(makeEmptySlot());
-    }
+    if(s.state==="back")$("backs").appendChild(makeStick(s,true,"back"));
+    else $("backs").appendChild(makeEmptySlot());
   });
 
   $("fronts").innerHTML="";
-
   frontSlots.forEach(id=>{
     if(id===null){
       $("fronts").appendChild(makeEmptySlot());
       return;
     }
-
     const s=fronts.find(x=>x.id===id&&x.state==="front");
-    $("fronts").appendChild(
-      s?makeStick(s,false,"front"):makeEmptySlot()
-    );
+    $("fronts").appendChild(s?makeStick(s,false,"front"):makeEmptySlot());
   });
 
   $("discarded").innerHTML="";
-
-  discarded.forEach(s=>{
-    $("discarded").appendChild(makeStick(s,false,"discarded"));
-  });
+  discarded.forEach(s=>$("discarded").appendChild(makeStick(s,false,"discarded")));
 
   $("status").textContent=notice;
   $("stats").textContent=
     `럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
 
   $("cancelPair").disabled=selectedPair.length===0;
-  $("soundToggle").textContent=
-    soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
+  $("soundToggle").textContent=soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
 
   requestAnimationFrame(()=>{
     lastFlippedId=null;
@@ -793,7 +637,6 @@ $("cancelPair").onclick=cancelPair;
 
 $("soundToggle").onclick=async()=>{
   soundOn=!soundOn;
-
   if(soundOn){
     const ctx=initAudio();
     if(ctx){
@@ -803,7 +646,6 @@ $("soundToggle").onclick=async()=>{
       }catch(e){}
     }
   }
-
   render();
 };
 
