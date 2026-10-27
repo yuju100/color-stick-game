@@ -241,13 +241,7 @@ function shuffle(a){
   return a;
 }
 
-/*
-  한 팩은 총 50개.
-  럭컬 10개 + 일반 색 40개.
-  일반 색 6개는 6개씩 4색, 8개씩 2색으로 배분.
-  모든 일반 색은 짝수이며, 색상별 차이는 최대 2개.
-  매 팩마다 어느 색이 8개가 될지 무작위로 정한다.
-*/
+/* 한 팩: 럭컬 10개 + 일반 색 40개 = 총 50개 */
 function addPack(){
   const pack=[];
 
@@ -275,7 +269,16 @@ function addPack(){
   });
 }
 
-function getBacks(){return deck.filter(s=>s.state==="back")}
+function getBacks(){
+  return deck.filter(s=>s.state==="back");
+}
+
+/* 보너스가 남았는데 뒤집을 막대가 없으면 새 팩을 준비 */
+function ensureBonusBacks(){
+  if(pending>0 && getBacks().length===0){
+    addPack();
+  }
+}
 
 function putInFrontSlot(s){
   const emptyIndex=frontSlots.indexOf(null);
@@ -285,16 +288,23 @@ function putInFrontSlot(s){
 
 function flipOne(kind){
   if(getBacks().length===0)addPack();
+
   const s=getBacks()[0];
   if(!s)return;
+
   s.state="front";
   s.order=++totalFlipped;
   s.kind=kind;
   fronts.push(s);
   putInFrontSlot(s);
   lastFlippedId=s.id;
+
   if(kind==="initial")initialRemaining--;
   if(kind==="bonus")pending=Math.max(0,pending-1);
+
+  /* 마지막 막대까지 뒤집었더라도 보너스가 남으면 새 팩 추가 */
+  ensureBonusBacks();
+
   sound("flip");
 }
 
@@ -324,7 +334,21 @@ function startGame(){
 function tapBack(id){
   if(ended)return;
   initAudio();
-  const s=deck.find(x=>x.id===id&&x.state==="back");
+
+  /*
+    클릭한 막대가 없으면 먼저 보너스용 새 팩을 확인한다.
+    새 팩을 추가한 경우 아직 클릭한 막대가 아니므로
+    화면을 갱신하고 새 막대를 눌러 달라고 안내한다.
+  */
+  let s=deck.find(x=>x.id===id&&x.state==="back");
+
+  if(!s && phase==="play" && pending>0){
+    ensureBonusBacks();
+    render();
+    s=deck.find(x=>x.id===id&&x.state==="back");
+    if(!s)return;
+  }
+
   if(!s)return;
 
   if(phase==="initial"){
@@ -356,6 +380,7 @@ function tapBack(id){
 function moveToDiscard(sticks,type){
   const moving=sticks.filter(s=>fronts.some(f=>f.id===s.id));
   if(!moving.length)return;
+
   moving.forEach(s=>{
     s.state=type;
     recentMovedIds.add(s.id);
@@ -363,6 +388,7 @@ function moveToDiscard(sticks,type){
     const slotIndex=frontSlots.indexOf(s.id);
     if(slotIndex>=0)frontSlots[slotIndex]=null;
   });
+
   const ids=new Set(moving.map(s=>s.id));
   fronts=fronts.filter(s=>!ids.has(s.id));
   selectedPair=selectedPair.filter(id=>!ids.has(id));
@@ -371,6 +397,7 @@ function moveToDiscard(sticks,type){
 function tapFront(id){
   if(ended||phase!=="play")return;
   initAudio();
+
   const s=fronts.find(x=>x.id===id&&x.state==="front");
   if(!s)return;
 
@@ -378,6 +405,7 @@ function tapFront(id){
     selectedPair=[];
     moveToDiscard([s],"luckySelected");
     pending+=2;
+    ensureBonusBacks();
     notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
     sound("lucky");
     render();
@@ -410,6 +438,7 @@ function tapFront(id){
   selectedPair=[];
   moveToDiscard([first,s],"paired");
   pending++;
+  ensureBonusBacks();
   notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
   sound("pair");
   render();
@@ -425,12 +454,14 @@ function cancelPair(){
 
 function hasManualEffects(){
   if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
+
   const counts={};
   fronts.forEach(s=>{
     if(s.state==="front"&&s.color!==luckyColor){
       counts[s.color]=(counts[s.color]||0)+1;
     }
   });
+
   return Object.values(counts).some(n=>n>=2);
 }
 
@@ -445,6 +476,7 @@ function checkEnd(){
 function endGame(){
   if(ended)return;
   if(fronts.length)moveToDiscard([...fronts],"final");
+
   ended=true;phase="ended";selectedPair=[];
   notice="모든 효과를 처리했어!";
   $("finished").classList.remove("hidden");
@@ -456,6 +488,7 @@ function endGame(){
 function makeStick(s,isBack,area){
   const b=document.createElement("button");
   b.className="stick "+(isBack?"back":"front");
+
   if(selectedPair.includes(s.id))b.classList.add("selected");
 
   if(isBack){
@@ -475,6 +508,7 @@ function makeStick(s,isBack,area){
 
   if(s.id===lastFlippedId)b.classList.add("flip-in");
   if(recentMovedIds.has(s.id))b.classList.add("land-in");
+
   return b;
 }
 
@@ -487,8 +521,13 @@ function makeEmptySlot(){
 
 function render(){
   $("backs").innerHTML="";
+
   deck.forEach(s=>{
-    $("backs").appendChild(s.state==="back"?makeStick(s,true,"back"):makeEmptySlot());
+    $("backs").appendChild(
+      s.state==="back"
+        ?makeStick(s,true,"back")
+        :makeEmptySlot()
+    );
   });
 
   $("fronts").innerHTML="";
@@ -497,12 +536,15 @@ function render(){
       $("fronts").appendChild(makeEmptySlot());
       return;
     }
+
     const s=fronts.find(x=>x.id===id&&x.state==="front");
     $("fronts").appendChild(s?makeStick(s,false,"front"):makeEmptySlot());
   });
 
   $("discarded").innerHTML="";
-  discarded.forEach(s=>$("discarded").appendChild(makeStick(s,false,"discarded")));
+  discarded.forEach(s=>{
+    $("discarded").appendChild(makeStick(s,false,"discarded"));
+  });
 
   $("status").textContent=notice;
   $("stats").textContent=`럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
@@ -520,6 +562,7 @@ $("cancelPair").onclick=cancelPair;
 
 $("soundToggle").onclick=async()=>{
   soundOn=!soundOn;
+
   if(soundOn){
     const ctx=initAudio();
     if(ctx){
@@ -529,6 +572,7 @@ $("soundToggle").onclick=async()=>{
       }catch(e){}
     }
   }
+
   render();
 };
 
