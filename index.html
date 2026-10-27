@@ -1,770 +1,476 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>컬러 막대 게임</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#fff3fa">
+<title>컬러팡팡</title>
 <style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  padding:12px;
-  background:#f5f1e8;
-  color:#302b35;
-  font-family:system-ui,sans-serif;
+:root {
+  --bg: #fff3fa;
+  --ink: #382b45;
+  --panel: #ffffff;
+  --muted: #87798f;
+  --line: #f0dceb;
 }
-
-/* 컴퓨터 화면에서 게임 전체 너비 제한 */
-body>h1,
-body>#setup,
-body>#game{
-  width:100%;
-  max-width:760px;
-  margin-left:auto;
-  margin-right:auto;
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: linear-gradient(145deg,#fff3fa,#f1edff);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
-
-h1{text-align:center;font-size:25px;margin:8px auto 16px}
-h2{font-size:17px;margin:0 0 12px}
-
-.panel{
-  background:#fff;
-  border-radius:16px;
-  padding:12px;
-  margin:12px 0;
-  box-shadow:0 3px 9px #0000000c;
+main { max-width: 760px; margin: auto; padding: 18px 14px 34px; }
+h1 { font-size: 29px; margin: 4px 0 5px; letter-spacing: -1px; }
+h2 { font-size: 16px; margin: 0 0 11px; }
+.sub,.note { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.sub { margin: 0 0 17px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  margin: 13px 0;
+  box-shadow: 0 5px 18px #8d57900c;
 }
-
-button,select{font:inherit}
-button{
-  border:0;
-  border-radius:11px;
-  padding:10px 12px;
-  background:#51417f;
-  color:white;
-  font-weight:700;
-  cursor:pointer;
-  touch-action:manipulation;
+.colors { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.color-btn {
+  border: 2px solid transparent;
+  border-radius: 13px;
+  background: #fff5fb;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 800;
+  min-height: 70px;
+  color: var(--ink);
 }
-button:disabled{opacity:.4}
-.secondary{background:#e9e4f3;color:#40355e}
-
-.settings{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
+.swatch {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  border: 1px solid #0002;
+  box-shadow: inset 0 2px 3px #ffffff60;
 }
-.settings label{display:block;font-size:13px}
-select{
-  width:100%;
-  padding:8px;
-  border:1px solid #ccc;
-  border-radius:9px;
-  margin-top:5px;
+.color-btn.selected { border-color: #a879d8; background: #f8efff; }
+button,select { font: inherit; cursor: pointer; touch-action: manipulation; }
+.primary,.secondary,.danger {
+  border: 0; border-radius: 13px; padding: 13px 15px; font-weight: 800;
 }
-.colors{display:flex;gap:9px;flex-wrap:wrap}
-.colorChoice{
-  width:36px;
-  height:36px;
-  padding:0;
-  border:3px solid white;
-  outline:1px solid #bbb;
-  border-radius:9px;
+.primary {
+  background: linear-gradient(100deg,#a47bfa,#ed83bd);
+  color: white; width: 100%; margin-top: 10px;
 }
-.colorChoice.chosen{outline:3px solid #51417f}
-
-/* 안내창 높이 고정 */
-.status-panel{
-  height:120px;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+.secondary { background: #eee6fa; color: #55446e; }
+.danger { background: #ffe6ed; color: #a43f69; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.stat {
+  background: linear-gradient(145deg,#fff1f8,#f3efff);
+  border: 1px solid #f4e4f2;
+  border-radius: 14px; padding: 11px 4px; text-align: center;
 }
-.status{
-  font-weight:700;
-  line-height:1.45;
-  white-space:pre-line;
-  min-height:44px;
-  max-height:58px;
-  overflow:auto;
+.stat strong { display: block; font-size: 23px; font-weight: 900; }
+.stat span { font-size: 11px; color: var(--muted); }
+.actions { display: flex; gap: 8px; margin-top: 10px; }
+.actions button { flex: 1; min-width: 0; }
+.sticks { display: flex; flex-wrap: wrap; gap: 6px; min-height: 38px; }
+.stick {
+  width: 25px; height: 52px; border-radius: 7px;
+  border: 1px solid #0002;
+  box-shadow: inset 0 0 0 1px #ffffff45, 0 2px 3px #0000000b;
+  flex-shrink: 0;
+  animation: landIn .18s ease-out;
 }
-.counter{height:18px;flex-shrink:0}
-.counter,.small{font-size:12px;color:#716a78}
-.actionrow{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-top:8px;
-  flex-shrink:0;
+/* 뒷면만 파스텔 패턴으로 변경 */
+.stick.back {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #9474c8;
+  background:
+    radial-gradient(circle at 25% 22%,#fff 0 1px,transparent 2px),
+    radial-gradient(circle at 75% 72%,#fff9 0 1.5px,transparent 2.5px),
+    repeating-linear-gradient(135deg,#bda0f5 0 5px,#e4a5d4 5px 10px,#a5b4ff 10px 15px);
 }
-.hidden{display:none!important}
-
-/* 막대 영역: 데스크톱에서는 막대 크기 고정 */
-.sticks{
-  display:grid;
-  grid-template-columns:repeat(10,44px);
-  gap:4px;
-  align-items:start;
+.stick.back:after {
+  content: "✦";
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 19px;
+  text-shadow: 0 1px 4px #67459b;
 }
-
-.stick{
-  width:44px;
-  min-width:44px;
-  height:62px;
-  padding:0;
-  position:relative;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:7px;
-  overflow:hidden;
-  flex-shrink:0;
-  box-shadow:inset 0 2px 0 #ffffff55,0 3px 3px #0002;
+.stick.small { width: 18px; height: 37px; border-radius: 5px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #0002; display: inline-block; }
+.log { font-size: 13px; line-height: 1.6; max-height: 190px; overflow: auto; color: #65566b; }
+.log div { padding: 5px 0; border-bottom: 1px solid #f6edf5; }
+.hidden { display: none !important; }
+.pill { display: inline-block; border-radius: 999px; padding: 4px 9px; background: #f1e8fa; font-size: 11px; font-weight: 800; }
+.settingrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 4px; }
+.settingrow label { font-size: 14px; font-weight: 800; }
+.settingrow select { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: white; min-width: 100px; }
+@keyframes landIn {
+  from { transform: translateY(-5px) scale(.92); opacity: .5; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
-
-.stick.back{
-  color:#fff;
-  background:repeating-linear-gradient(
-    45deg,
-    #51417f,#51417f 5px,
-    #655393 5px,#655393 10px
-  );
-  border:1px solid #a99acb;
-}
-.stick.front{border:1px solid #ffffff55}
-.stick.selected{outline:3px solid #e0a62c;outline-offset:1px}
-
-.stick .pattern{
-  position:absolute;
-  inset:6px;
-  border:1px solid #ffffff70;
-  border-radius:4px;
-  pointer-events:none;
-}
-
-.empty-slot{
-  width:44px;
-  min-width:44px;
-  height:62px;
-  visibility:hidden;
-  pointer-events:none;
-}
-
-/* 막대 영역의 최소 높이 */
-.board-panel{overflow:hidden}
-#backs{min-height:326px}
-#fronts{min-height:62px}
-#discarded{min-height:62px}
-
-/* 뒤집기 모션 */
-@keyframes flipIn{
-  0%{
-    transform:perspective(450px) rotateY(90deg) scale(.8);
-    opacity:.15;
-  }
-  55%{
-    transform:perspective(450px) rotateY(-12deg) scale(1.06);
-    opacity:1;
-  }
-  100%{
-    transform:perspective(450px) rotateY(0) scale(1);
-    opacity:1;
-  }
-}
-
-/* 막대가 놓이는 모션 */
-@keyframes landIn{
-  0%{transform:translateY(-18px) scale(.8);opacity:.2}
-  70%{transform:translateY(2px) scale(1.04);opacity:1}
-  100%{transform:translateY(0) scale(1);opacity:1}
-}
-
-.flip-in{animation:flipIn .38s ease-out both}
-.land-in{animation:landIn .28s ease-out both}
-
-/* 모바일 화면 */
-@media(max-width:480px){
-  body{padding:8px}
-  .panel{padding:9px}
-
-  .sticks{
-    grid-template-columns:repeat(10,minmax(0,1fr));
-    gap:3px;
-  }
-
-  .stick,.empty-slot{
-    width:100%;
-    min-width:0;
-    height:54px;
-  }
-
-  #backs{min-height:285px}
-  #fronts,#discarded{min-height:54px}
-  .settings{gap:8px}
-  .status-panel{height:124px}
-}
-
-@media(prefers-reduced-motion:reduce){
-  .flip-in,.land-in{animation:none!important}
+@media(min-width:520px) {
+  .colors { grid-template-columns: repeat(7,1fr); }
+  .stick:not(.small) { width: 44px; height: 62px; }
 }
 </style>
 </head>
 <body>
-
-<h1>🌈 컬러 막대 게임</h1>
+<main>
+<h1>🌈 컬러팡팡</h1>
+<p class="sub">럭키 컬러를 골라 막대를 뒤집어 보세요! 운이 좋으면 보너스 막대가 팡팡!</p>
 
 <section class="panel" id="setup">
-  <h2>게임 설정</h2>
-  <p class="small">럭컬 색깔을 골라 줘.</p>
+  <h2>🍀 1. 럭키 컬러 선택</h2>
   <div class="colors" id="colorChoices"></div>
+  <div class="settingrow">
+    <label for="initialCount">처음 뒤집을 막대 수</label>
+    <select id="initialCount">
+      <option>5</option><option>6</option><option>7</option>
+      <option>8</option><option>9</option><option>10</option>
+      <option selected>11</option>
+    </select>
+  </div>
+  <p class="note">한 판은 50개입니다. 럭키 컬러는 10개, 나머지 색상은 40개예요.</p>
+  <button class="primary" id="startBtn">🎉 게임 시작!</button>
+  <p id="setupMessage" class="note">먼저 럭키 컬러를 선택해 주세요.</p>
+</section>
 
-  <div class="settings" style="margin-top:14px">
-    <label>처음 뒤집을 개수
-      <select id="initialCount">
-        <option>5</option><option>6</option><option>7</option>
-        <option>8</option><option>9</option><option>10</option>
-        <option>11</option>
-      </select>
-    </label>
-
-    <label>처음 뒤집기
-      <select id="initialMode">
-        <option value="manual">직접 누르기</option>
-        <option value="auto">자동 뒤집기</option>
-      </select>
-    </label>
+<section class="panel hidden" id="game">
+  <div class="stats">
+    <div class="stat"><strong id="score">0</strong><span>점수</span></div>
+    <div class="stat"><strong id="remaining">50</strong><span>남은 막대</span></div>
+    <div class="stat"><strong id="packs">1</strong><span>사용한 판</span></div>
   </div>
 
-  <div class="actionrow">
-    <button id="startBtn">게임 시작!</button>
+  <p style="margin:12px 0 4px">
+    <span class="pill" id="luckyLabel"></span>
+    <span class="pill" id="status">준비 중</span>
+  </p>
+
+  <section style="margin-top:14px">
+    <h2>🗑️ 바닥에 놓인 막대 <span class="note">(점수에 포함)</span></h2>
+    <div class="sticks" id="floor"></div>
+  </section>
+
+  <section style="margin-top:16px">
+    <h2>🙈 아직 뒤집지 않은 막대</h2>
+    <div class="sticks" id="deck"></div>
+  </section>
+
+  <section style="margin-top:16px">
+    <h2>✨ 현재 공개된 막대</h2>
+    <div class="sticks" id="active"></div>
+    <p class="note">럭키 컬러는 2개, 다른 색깔의 짝은 1개를 추가 공개합니다.</p>
+  </section>
+
+  <div class="actions">
+    <button class="secondary" id="revealBtn">막대 1개 뒤집기</button>
+    <button class="secondary" id="autoBtn">자동 진행</button>
+  </div>
+  <div class="actions">
+    <button class="secondary" id="pauseBtn">자동 진행 멈춤</button>
+    <button class="danger" id="newBtn">새 게임</button>
   </div>
 </section>
 
-<section id="game" class="hidden">
-  <div class="panel status-panel">
-    <div class="status" id="status" aria-live="polite"></div>
-    <div class="counter" id="stats"></div>
-    <div class="actionrow">
-      <button class="secondary" id="cancelPair">짝 선택 취소</button>
-      <button class="secondary" id="soundToggle">🔊 소리 켜짐</button>
-    </div>
-  </div>
-
-  <div class="panel board-panel">
-    <div class="sticks" id="backs"></div>
-  </div>
-
-  <div class="panel board-panel">
-    <div class="sticks" id="fronts"></div>
-  </div>
-
-  <div class="panel board-panel">
-    <div class="sticks" id="discarded"></div>
-  </div>
-
-  <div class="panel hidden" id="finished">
-    <h2>🎉 게임 종료!</h2>
-    <p id="finalScore" class="status"></p>
-    <button id="restart">다시 하기</button>
-  </div>
+<section class="panel">
+  <h2>🎨 색깔 안내</h2>
+  <div class="legend" id="legend"></div>
 </section>
+
+<section class="panel">
+  <h2>📜 게임 기록</h2>
+  <div class="log" id="log"><div>럭키 컬러를 선택하고 게임을 시작하세요.</div></div>
+</section>
+<p class="note">점수는 공개한 막대 수입니다. 막대가 바닥에 놓이더라도 점수는 줄어들지 않습니다.</p>
+</main>
 
 <script>
-"use strict";
-
-const COLORS=[
-  {name:"빨강",value:"#e34e4e"},
-  {name:"노랑",value:"#e2b62e"},
-  {name:"분홍",value:"#e779ad"},
-  {name:"보라",value:"#865bd1"},
-  {name:"검정",value:"#393740"},
-  {name:"파랑",value:"#4389d8"},
-  {name:"회색",value:"#858b95"}
+const COLORS = [
+  {name:'빨강', hex:'#F21D2F'},
+  {name:'노랑', hex:'#FFD400'},
+  {name:'분홍', hex:'#FF1493'},
+  {name:'보라', hex:'#8A2BE2'},
+  {name:'검정', hex:'#292929'},
+  {name:'파랑', hex:'#087CE8'},
+  {name:'회색', hex:'#999999'}
 ];
 
-const $=id=>document.getElementById(id);
+let lucky = 2;
+let deck = [], active = [], floor = [];
+let packs = 0, score = 0;
+let running = false, timer = null, gameOver = false, resolving = false;
 
-let luckyColor="빨강";
-let deck=[],fronts=[],discarded=[],selectedPair=[],frontSlots=[];
-let totalFlipped=0,pending=0,initialRemaining=0;
-let phase="setup",ended=false,soundOn=true,audioCtx=null;
-let lastFlippedId=null,recentMovedIds=new Set(),notice="";
+const $ = id => document.getElementById(id);
 
-function makeColorChoices(){
-  $("colorChoices").innerHTML="";
-
-  COLORS.forEach(c=>{
-    const b=document.createElement("button");
-    b.className="colorChoice"+(c.name===luckyColor?" chosen":"");
-    b.style.background=c.value;
-    b.title=c.name;
-    b.setAttribute("aria-label",c.name);
-
-    b.onclick=()=>{
-      if(phase!=="setup")return;
-      luckyColor=c.name;
-      makeColorChoices();
-    };
-
-    $("colorChoices").appendChild(b);
-  });
+function addLog(message) {
+  const div = document.createElement('div');
+  div.textContent = message;
+  $('log').prepend(div);
 }
 
-/* 오디오 */
-function initAudio(){
-  try{
-    const Ctx=window.AudioContext||window.webkitAudioContext;
-    if(!Ctx)return null;
-    if(!audioCtx)audioCtx=new Ctx();
-    return audioCtx;
-  }catch(e){
-    return null;
+function makePack() {
+  const arr = [];
+
+  // 럭키 컬러 10개
+  for (let i = 0; i < 10; i++) arr.push(lucky);
+
+  // 나머지 6가지 색상은 40개를 분배
+  // 기본 6~7개씩 넣고, 색상별 개수는 판마다 무작위로 조정
+  const others = COLORS.map((_, i) => i).filter(i => i !== lucky);
+  const counts = [7,7,7,7,6,6];
+
+  // 색상별 수량이 고정된 순서로 반복되지 않도록 섞기
+  for (let i = counts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [counts[i], counts[j]] = [counts[j], counts[i]];
   }
+
+  others.forEach((color, i) => {
+    for (let n = 0; n < counts[i]; n++) arr.push(color);
+  });
+
+  // 막대를 무작위로 섞기
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  packs++;
+  deck.push(...arr);
+  addLog(`새 50개 판을 가져왔어요! (${packs}번째 판)`);
 }
 
-function woodenTap(ctx,time,frequency,duration,volume){
-  const osc=ctx.createOscillator();
-  const gain=ctx.createGain();
-
-  osc.type="triangle";
-  osc.frequency.setValueAtTime(frequency,time);
-  osc.frequency.exponentialRampToValueAtTime(
-    Math.max(100,frequency*.55),time+duration
-  );
-
-  gain.gain.setValueAtTime(.0001,time);
-  gain.gain.exponentialRampToValueAtTime(volume,time+.004);
-  gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(time);
-  osc.stop(time+duration+.015);
+function stickEl(color, back = false, small = false) {
+  const el = document.createElement('div');
+  el.className = 'stick' + (back ? ' back' : '') + (small ? ' small' : '');
+  if (!back) {
+    el.style.background = COLORS[color].hex;
+    el.title = COLORS[color].name;
+  }
+  return el;
 }
 
-function bell(ctx,time,frequency,duration,volume){
-  const osc=ctx.createOscillator();
-  const gain=ctx.createGain();
+function render() {
+  $('score').textContent = score;
+  $('remaining').textContent = deck.length;
+  $('packs').textContent = packs;
+  $('luckyLabel').textContent = '럭키 컬러: ' + COLORS[lucky].name;
+  $('status').textContent = gameOver ? '게임 종료' : running ? '자동 진행 중' : '진행 가능';
 
-  osc.type="sine";
-  osc.frequency.setValueAtTime(frequency,time);
+  const floorEl = $('floor');
+  floorEl.innerHTML = '';
+  floor.forEach(color => floorEl.appendChild(stickEl(color, false, true)));
 
-  gain.gain.setValueAtTime(.0001,time);
-  gain.gain.exponentialRampToValueAtTime(volume,time+.012);
-  gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
+  const deckEl = $('deck');
+  deckEl.innerHTML = '';
+  for (let i = 0; i < Math.min(deck.length, 50); i++) {
+    deckEl.appendChild(stickEl(0, true, true));
+  }
+  if (deck.length > 50) {
+    const more = document.createElement('span');
+    more.textContent = `+${deck.length - 50}개`;
+    more.className = 'pill';
+    deckEl.appendChild(more);
+  }
 
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(time);
-  osc.stop(time+duration+.02);
+  const activeEl = $('active');
+  activeEl.innerHTML = '';
+  active.forEach(color => activeEl.appendChild(stickEl(color, false, true)));
+
+  $('revealBtn').disabled = gameOver || running;
+  $('autoBtn').disabled = gameOver || running;
 }
 
-async function sound(type){
-  if(!soundOn)return;
+function revealMany(amount) {
+  for (let i = 0; i < amount; i++) {
+    if (deck.length === 0) makePack();
+    const color = deck.shift();
+    active.push(color);
+    floor.push(color);
+    score++;
+    addLog(`${COLORS[color].name} 공개!`);
+  }
+  render();
+}
 
-  const ctx=initAudio();
-  if(!ctx)return;
+function revealOne() {
+  if (gameOver || resolving) return;
+  if (deck.length === 0) makePack();
 
-  try{
-    if(ctx.state!=="running"){
-      await ctx.resume();
+  const color = deck.shift();
+  active.push(color);
+  floor.push(color);
+  score++;
+  addLog(`${COLORS[color].name} 공개!`);
+
+  render();
+  resolveEffects();
+}
+
+function hasEffect() {
+  if (active.includes(lucky)) return true;
+  const counts = Array(7).fill(0);
+  active.forEach(color => counts[color]++);
+  return counts.some((count, color) => color !== lucky && count >= 2);
+}
+
+function resolveEffects() {
+  if (gameOver || resolving) return;
+  resolving = true;
+  let safety = 0;
+
+  while (safety++ < 1000) {
+    // 럭키 컬러를 하나 발견할 때마다 제거하고 2개 공개
+    const luckyIndex = active.indexOf(lucky);
+    if (luckyIndex !== -1) {
+      active.splice(luckyIndex, 1);
+      addLog(`🍀 럭키 컬러 ${COLORS[lucky].name}! 막대 2개 추가 공개!`);
+      revealMany(2);
+      continue;
     }
 
-    if(ctx.state!=="running")return;
+    // 럭키 컬러를 제외한 같은 색 2개를 제거하고 1개 공개
+    const counts = Array(7).fill(0);
+    active.forEach(color => counts[color]++);
 
-    const t=ctx.currentTime+.005;
-
-    if(type==="flip"){
-      woodenTap(ctx,t,920,.045,.16);
-      woodenTap(ctx,t+.025,660,.055,.055);
-    }else if(type==="move"){
-      woodenTap(ctx,t,390,.075,.19);
-      woodenTap(ctx,t+.018,250,.065,.07);
-    }else if(type==="lucky"){
-      bell(ctx,t,880,.16,.12);
-      bell(ctx,t+.085,1175,.19,.11);
-      bell(ctx,t+.17,1568,.25,.09);
-    }else if(type==="pair"){
-      woodenTap(ctx,t,520,.06,.13);
-      woodenTap(ctx,t+.07,390,.07,.14);
-    }else if(type==="end"){
-      bell(ctx,t,784,.16,.08);
-      bell(ctx,t+.12,988,.18,.08);
-      bell(ctx,t+.25,1175,.25,.09);
+    const pairColor = counts.findIndex((count, color) => color !== lucky && count >= 2);
+    if (pairColor !== -1) {
+      let removed = 0;
+      for (let i = active.length - 1; i >= 0 && removed < 2; i--) {
+        if (active[i] === pairColor) {
+          active.splice(i, 1);
+          removed++;
+        }
+      }
+      addLog(`🎯 ${COLORS[pairColor].name} 짝 완성! 막대 1개 추가 공개!`);
+      revealMany(1);
+      continue;
     }
-  }catch(e){
-    console.warn("효과음을 재생하지 못했습니다.",e);
+
+    break;
   }
-}
 
-function shuffle(a){
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
+  resolving = false;
+
+  if (safety >= 1000) {
+    endGame('안전 제한에 도달했어요.');
+    return;
   }
-  return a;
-}
 
-function addPack(){
-  const pack=[];
-
-  COLORS.forEach(c=>{
-    for(let i=0;i<7;i++)pack.push(c.name);
-  });
-
-  pack.push(COLORS[Math.floor(Math.random()*COLORS.length)].name);
-  shuffle(pack);
-
-  pack.forEach(color=>{
-    deck.push({
-      id:Math.random().toString(36).slice(2)+
-         Date.now().toString(36)+Math.random(),
-      color,
-      state:"back",
-      order:0
-    });
-  });
-}
-
-function getBacks(){
-  return deck.filter(s=>s.state==="back");
-}
-
-function putInFrontSlot(s){
-  const emptyIndex=frontSlots.indexOf(null);
-  if(emptyIndex>=0)frontSlots[emptyIndex]=s.id;
-  else frontSlots.push(s.id);
-}
-
-function flipOne(kind){
-  if(getBacks().length===0)addPack();
-
-  const s=getBacks()[0];
-  if(!s)return;
-
-  s.state="front";
-  s.order=++totalFlipped;
-  s.kind=kind;
-
-  fronts.push(s);
-  putInFrontSlot(s);
-  lastFlippedId=s.id;
-
-  if(kind==="initial")initialRemaining--;
-  if(kind==="bonus")pending=Math.max(0,pending-1);
-
-  sound("flip");
-}
-
-function startGame(){
-  initAudio();
-
-  deck=[];
-  fronts=[];
-  discarded=[];
-  selectedPair=[];
-  frontSlots=[];
-
-  totalFlipped=0;
-  pending=0;
-  initialRemaining=Number($("initialCount").value);
-  lastFlippedId=null;
-  recentMovedIds.clear();
-
-  ended=false;
-  phase="initial";
-  notice="";
-
-  addPack();
-
-  $("setup").classList.add("hidden");
-  $("game").classList.remove("hidden");
-  $("finished").classList.add("hidden");
-
-  if($("initialMode").value==="auto"){
-    while(initialRemaining>0)flipOne("initial");
-    phase="play";
-    notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
-  }else{
-    notice=`처음 막대를 ${initialRemaining}개 직접 눌러 뒤집어 줘!`;
+  if (!hasEffect()) {
+    endGame('더 이상 럭키 컬러나 짝이 나오지 않아요!');
+    return;
   }
 
   render();
 }
 
-function tapBack(id){
-  if(ended)return;
+function start() {
+  stopAuto();
+  deck = [];
+  active = [];
+  floor = [];
+  packs = 0;
+  score = 0;
+  gameOver = false;
+  resolving = false;
 
-  initAudio();
+  const initialCount = Number($('initialCount').value);
+  $('log').innerHTML = '';
+  $('setup').classList.add('hidden');
+  $('game').classList.remove('hidden');
 
-  const s=deck.find(x=>x.id===id&&x.state==="back");
-  if(!s)return;
-
-  if(phase==="initial"){
-    flipOne("initial");
-
-    if(initialRemaining<=0){
-      phase="play";
-      notice="럭컬이나 같은 색 짝을 눌러 처리해 줘!";
-    }else{
-      notice=`처음 막대를 더 뒤집어 줘! (${initialRemaining}개 남음)`;
-    }
-
-    render();
-    return;
-  }
-
-  if(phase==="play"&&pending>0){
-    flipOne("bonus");
-
-    notice=pending>0
-      ?`보너스 막대 ${pending}개 남음. 더 뒤집거나 보이는 효과를 처리해 줘!`
-      :"보너스를 모두 뒤집었어! 새로 나온 럭컬과 짝컬을 확인해 줘.";
-
-    render();
-    checkEnd();
-    return;
-  }
-
-  notice="먼저 보이는 럭컬이나 같은 색 짝을 처리해 줘!";
+  makePack();
+  addLog(`럭키 컬러: ${COLORS[lucky].name}. 처음 ${initialCount}개를 공개합니다.`);
+  revealMany(initialCount);
+  resolveEffects();
   render();
 }
 
-function moveToDiscard(sticks,type){
-  const moving=sticks.filter(s=>fronts.some(f=>f.id===s.id));
-  if(!moving.length)return;
-
-  moving.forEach(s=>{
-    s.state=type;
-    recentMovedIds.add(s.id);
-    discarded.push(s);
-
-    const slotIndex=frontSlots.indexOf(s.id);
-    if(slotIndex>=0)frontSlots[slotIndex]=null;
-  });
-
-  const ids=new Set(moving.map(s=>s.id));
-  fronts=fronts.filter(s=>!ids.has(s.id));
-  selectedPair=selectedPair.filter(id=>!ids.has(id));
-
-  sound("move");
-}
-
-function tapFront(id){
-  if(ended||phase!=="play")return;
-
-  initAudio();
-
-  const s=fronts.find(x=>x.id===id&&x.state==="front");
-  if(!s)return;
-
-  if(s.color===luckyColor){
-    selectedPair=[];
-    moveToDiscard([s],"luckySelected");
-    pending+=2;
-
-    notice=`럭컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과를 처리하거나 보너스를 뒤집어 줘.`;
-
-    sound("lucky");
-    render();
-    checkEnd();
-    return;
-  }
-
-  if(selectedPair.includes(id)){
-    selectedPair=[];
-    notice="짝 선택을 취소했어.";
-    render();
-    return;
-  }
-
-  if(selectedPair.length===0){
-    selectedPair=[id];
-    notice="같은 색 막대 하나를 더 눌러 짝을 만들어 줘.";
-    render();
-    return;
-  }
-
-  const first=fronts.find(x=>x.id===selectedPair[0]);
-
-  if(!first||first.color!==s.color){
-    selectedPair=[id];
-    notice="같은 색 막대 하나를 더 눌러 줘.";
-    render();
-    return;
-  }
-
-  selectedPair=[];
-  moveToDiscard([first,s],"paired");
-  pending++;
-
-  notice=`짝컬 처리! 보너스 ${pending}개가 준비됐어. 다른 효과도 처리하거나 보너스를 뒤집어 줘.`;
-
-  sound("pair");
-  render();
-  checkEnd();
-}
-
-function cancelPair(){
-  if(!selectedPair.length)return;
-  selectedPair=[];
-  notice="짝 선택을 취소했어.";
+function endGame(message) {
+  gameOver = true;
+  stopAuto();
+  addLog(`🎉 ${message} 최종 점수: ${score}점!`);
   render();
 }
 
-function hasManualEffects(){
-  if(fronts.some(s=>s.color===luckyColor&&s.state==="front"))return true;
-
-  const counts={};
-
-  fronts.forEach(s=>{
-    if(s.state==="front"&&s.color!==luckyColor){
-      counts[s.color]=(counts[s.color]||0)+1;
-    }
-  });
-
-  return Object.values(counts).some(n=>n>=2);
+function stopAuto() {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+  running = false;
 }
 
-function checkEnd(){
-  if(ended||phase!=="play")return;
-  if(pending>0)return;
-  if(hasManualEffects())return;
-  if(selectedPair.length>0)return;
-  endGame();
-}
-
-function endGame(){
-  if(ended)return;
-
-  if(fronts.length)moveToDiscard([...fronts],"final");
-
-  ended=true;
-  phase="ended";
-  selectedPair=[];
-  notice="모든 효과를 처리했어!";
-
-  $("finished").classList.remove("hidden");
-  $("finalScore").textContent=`총 뒤집은 막대: ${totalFlipped}개`;
-
-  sound("end");
+function auto() {
+  if (gameOver || running) return;
+  running = true;
   render();
-}
 
-function makeStick(s,isBack,area){
-  const b=document.createElement("button");
-
-  b.className="stick "+(isBack?"back":"front");
-
-  if(selectedPair.includes(s.id))b.classList.add("selected");
-
-  if(isBack){
-    b.innerHTML='<span class="pattern"></span>';
-    b.setAttribute("aria-label","뒤집힌 막대");
-    b.onclick=()=>tapBack(s.id);
-    return b;
-  }
-
-  const color=COLORS.find(c=>c.name===s.color);
-  b.style.background=color?color.value:"#888";
-  b.innerHTML='<span class="pattern"></span>';
-  b.setAttribute("aria-label",s.color+" 막대");
-
-  if(area==="front"&&s.state==="front"){
-    b.onclick=()=>tapFront(s.id);
-  }else{
-    b.disabled=true;
-  }
-
-  if(s.id===lastFlippedId)b.classList.add("flip-in");
-  if(recentMovedIds.has(s.id))b.classList.add("land-in");
-
-  return b;
-}
-
-function makeEmptySlot(){
-  const empty=document.createElement("div");
-  empty.className="empty-slot";
-  empty.setAttribute("aria-hidden","true");
-  return empty;
-}
-
-function render(){
-  $("backs").innerHTML="";
-
-  deck.forEach(s=>{
-    if(s.state==="back"){
-      $("backs").appendChild(makeStick(s,true,"back"));
-    }else{
-      $("backs").appendChild(makeEmptySlot());
-    }
-  });
-
-  $("fronts").innerHTML="";
-
-  frontSlots.forEach(id=>{
-    if(id===null){
-      $("fronts").appendChild(makeEmptySlot());
+  timer = setInterval(() => {
+    if (gameOver) {
+      stopAuto();
+      render();
       return;
     }
+    revealOne();
+  }, 500);
+}
 
-    const s=fronts.find(x=>x.id===id&&x.state==="front");
-    $("fronts").appendChild(
-      s?makeStick(s,false,"front"):makeEmptySlot()
-    );
+function init() {
+  COLORS.forEach((color, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'color-btn' + (index === lucky ? ' selected' : '');
+    button.setAttribute('aria-pressed', index === lucky ? 'true' : 'false');
+    button.innerHTML = `<div class="swatch" style="background:${color.hex}"></div>${color.name}`;
+
+    button.addEventListener('click', () => {
+      if (!$('game').classList.contains('hidden')) return;
+      lucky = index;
+
+      [...$('colorChoices').children].forEach((element, i) => {
+        element.classList.toggle('selected', i === index);
+        element.setAttribute('aria-pressed', i === index ? 'true' : 'false');
+      });
+
+      $('setupMessage').textContent = '선택한 럭키 컬러: ' + color.name;
+    });
+
+    $('colorChoices').appendChild(button);
+
+    const legendItem = document.createElement('span');
+    legendItem.innerHTML = `<i class="dot" style="background:${color.hex}"></i>${color.name}`;
+    $('legend').appendChild(legendItem);
   });
 
-  $("discarded").innerHTML="";
+  $('startBtn').addEventListener('click', start);
+  $('revealBtn').addEventListener('click', revealOne);
+  $('autoBtn').addEventListener('click', auto);
 
-  discarded.forEach(s=>{
-    $("discarded").appendChild(makeStick(s,false,"discarded"));
+  $('pauseBtn').addEventListener('click', () => {
+    stopAuto();
+    render();
   });
 
-  $("status").textContent=notice;
-  $("stats").textContent=
-    `럭컬 색: ${luckyColor} · 뒤집은 개수: ${totalFlipped} · 보너스 남음: ${pending}`;
-
-  $("cancelPair").disabled=selectedPair.length===0;
-  $("soundToggle").textContent=
-    soundOn?"🔊 소리 켜짐":"🔇 소리 꺼짐";
-
-  requestAnimationFrame(()=>{
-    lastFlippedId=null;
-    recentMovedIds.clear();
+  $('newBtn').addEventListener('click', () => {
+    stopAuto();
+    gameOver = false;
+    $('game').classList.add('hidden');
+    $('setup').classList.remove('hidden');
+    $('log').innerHTML = '<div>럭키 컬러를 선택하고 게임을 시작하세요.</div>';
+    $('setupMessage').textContent = '먼저 럭키 컬러를 선택해 주세요.';
   });
 }
 
-$("startBtn").onclick=startGame;
-$("cancelPair").onclick=cancelPair;
-
-$("soundToggle").onclick=async()=>{
-  soundOn=!soundOn;
-
-  if(soundOn){
-    const ctx=initAudio();
-    if(ctx){
-      try{
-        if(ctx.state!=="running")await ctx.resume();
-        sound("flip");
-      }catch(e){}
-    }
-  }
-
-  render();
-};
-
-$("restart").onclick=()=>{
-  phase="setup";
-  ended=false;
-  $("game").classList.add("hidden");
-  $("setup").classList.remove("hidden");
-  makeColorChoices();
-};
-
-makeColorChoices();
+init();
 </script>
 </body>
 </html>
-
