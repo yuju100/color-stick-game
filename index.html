@@ -243,21 +243,21 @@ function shuffle(a){
 
 /*
   한 팩은 총 50개.
-  럭컬 8개 + 일반 색 42개.
-  일반 색 6개는 8개씩 3색, 6개씩 3색으로 배분.
+  럭컬 10개 + 일반 색 40개.
+  일반 색 6개는 6개씩 4색, 8개씩 2색으로 배분.
   모든 일반 색은 짝수이며, 색상별 차이는 최대 2개.
-  매 팩마다 배분을 무작위로 섞는다.
+  매 팩마다 어느 색이 8개가 될지 무작위로 정한다.
 */
 function addPack(){
   const pack=[];
 
-  for(let i=0;i<8;i++)pack.push(luckyColor);
+  for(let i=0;i<10;i++)pack.push(luckyColor);
 
   const otherColors=COLORS
     .map(c=>c.name)
     .filter(name=>name!==luckyColor);
 
-  const counts=shuffle([8,8,8,6,6,6]);
+  const counts=shuffle([8,8,6,6,6,6]);
 
   otherColors.forEach((color,index)=>{
     for(let i=0;i<counts[index];i++)pack.push(color);
