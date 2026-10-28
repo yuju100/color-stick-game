@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>컬러팡팡 ver.3 (2026-10-27)</title>
+<title>컬러팡팡 ver.4 (2026-10-28)</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;padding:12px;background:#f5f1e8;color:#302b35;font-family:system-ui,sans-serif}
@@ -243,17 +242,32 @@ function shuffle(a){
   return a;
 }
 
-/* 한 팩: 럭컬 10개 + 일반 색 40개 = 총 50개 */
+/* 한 팩: 전체 50개 고정.
+   럭컬은 8/10/12개, 일반 색 6종은 각각 4/6/8/10개.
+   모든 색의 개수는 짝수이며, 전체 합계는 반드시 50개다. */
 function addPack(){
   const pack=[];
 
-  for(let i=0;i<10;i++)pack.push(luckyColor);
+  const luckyOptions=[8,10,12];
+  const luckyCount=luckyOptions[Math.floor(Math.random()*luckyOptions.length)];
+
+  for(let i=0;i<luckyCount;i++)pack.push(luckyColor);
 
   const otherColors=COLORS
     .map(c=>c.name)
     .filter(name=>name!==luckyColor);
 
-  const counts=shuffle([8,8,6,6,6,6]);
+  const allowedCounts=[4,6,8,10];
+  const targetNormalCount=50-luckyCount;
+  let counts=[];
+
+  /* 일반 색 6종의 개수를 랜덤으로 정하되,
+     일반 색의 합계가 정확히 50 - 럭컬 개수가 되도록 한다. */
+  do{
+    counts=otherColors.map(
+      ()=>allowedCounts[Math.floor(Math.random()*allowedCounts.length)]
+    );
+  }while(counts.reduce((sum,count)=>sum+count,0)!==targetNormalCount);
 
   otherColors.forEach((color,index)=>{
     for(let i=0;i<counts[index];i++)pack.push(color);
